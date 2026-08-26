@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CaseBrief MVP Demo</title>
+<style>
+:root{
+  --bg:#090713;--panel:#121021;--panel2:#18142b;--line:#31284d;--text:#f5f2fb;
+  --muted:#aaa3bb;--purple:#7c4dff;--purple2:#b28dff;--silver:#dfe4ec;--danger:#ff6b7a;
+  --warn:#ffca6a;--ok:#79e0b6;--info:#89b7ff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:
+radial-gradient(circle at 20% 0%,#21163e 0,transparent 30%),var(--bg);color:var(--text)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(9,7,19,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
+.brand{font-weight:800;letter-spacing:.4px}.brand span{color:var(--purple2)}
+.badge{font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 57px)}
+.sidebar{border-right:1px solid var(--line);padding:16px;background:rgba(10,8,18,.7)}
+.navbtn{width:100%;text-align:left;background:transparent;border:0;color:var(--muted);padding:10px 12px;border-radius:10px;margin:2px 0}
+.navbtn:hover,.navbtn.active{background:var(--panel2);color:white}
+.main{padding:22px;max-width:1400px}
+.hero{padding:28px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,rgba(124,77,255,.15),rgba(223,228,236,.03))}
+.hero h1{font-size:clamp(30px,5vw,60px);margin:.15em 0}.hero p{max-width:750px;color:var(--muted);font-size:18px;line-height:1.5}
+.row{display:flex;gap:12px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--panel2);color:white;padding:10px 14px;border-radius:10px}.btn.primary{background:linear-gradient(135deg,#6a38f0,#9367ff);border-color:#8d6aff}.btn.good{background:#123d31}.btn.bad{background:#431b24}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:linear-gradient(180deg,rgba(24,20,43,.95),rgba(16,14,30,.95));border:1px solid var(--line);border-radius:16px;padding:16px}.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.kicker{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--purple2)}h2,h3{margin-top:6px}.muted{color:var(--muted)}.metric{font-size:30px;font-weight:800}
+.orbwrap{display:flex;align-items:center;gap:20px}.orb{--pct:55;position:relative;width:154px;height:154px;border:0;border-radius:50%;padding:0;overflow:hidden;background:radial-gradient(circle at 34% 24%,#f9fbff 0 4%,#aeb5c3 16%,#303545 48%,#080914 76%);box-shadow:inset -25px -22px 32px rgba(0,0,0,.84),inset 11px 9px 22px rgba(255,255,255,.22),0 0 0 1px rgba(224,232,245,.3),0 0 42px rgba(166,136,255,.34);isolation:isolate;transition:transform .2s,box-shadow .2s}
+.orb:hover,.orb:focus-visible{transform:scale(1.035);box-shadow:inset -25px -22px 32px rgba(0,0,0,.84),inset 11px 9px 22px rgba(255,255,255,.22),0 0 0 2px var(--purple2),0 0 52px rgba(166,136,255,.5)}
+.orb .liquid{position:absolute;z-index:1;left:-8%;right:-8%;bottom:-5%;height:calc(var(--pct)*1% + 5%);background:linear-gradient(90deg,#5d6472 0%,#f5f7fb 19%,#868e9e 38%,#fff 57%,#666e7e 79%,#dce2eb 100%);box-shadow:inset 0 16px 22px rgba(255,255,255,.4),inset 0 -28px 35px rgba(0,0,0,.42);animation:liquidShift 6s ease-in-out infinite alternate}
+.orb .liquid:before{content:"";position:absolute;left:-10%;top:-9px;width:120%;height:22px;border-radius:50%;background:linear-gradient(90deg,#7a8291,#fff 25%,#6a7281 54%,#e9edf4 78%,#818998);box-shadow:0 -4px 9px rgba(255,255,255,.35)}
+.orb .shine{position:absolute;z-index:3;inset:0;border-radius:50%;background:radial-gradient(circle at 31% 23%,rgba(255,255,255,.82) 0 3%,transparent 12%),linear-gradient(125deg,transparent 0 36%,rgba(255,255,255,.17) 44%,transparent 54%);pointer-events:none}
+.orb .orbscore{position:absolute;z-index:4;inset:0;display:grid;place-items:center;font-size:26px;font-weight:900;color:white;text-shadow:0 2px 10px #000}
+@keyframes liquidShift{from{transform:translateX(-2%) rotate(-1deg)}to{transform:translateX(2%) rotate(1deg)}}
+.list{display:flex;flex-direction:column;gap:10px}.item{padding:12px;border:1px solid var(--line);border-radius:12px;background:#0f0c1b}.item .meta{font-size:12px;color:var(--muted);margin-top:6px}
+.pill{display:inline-block;font-size:11px;padding:4px 7px;border-radius:999px;border:1px solid var(--line);margin-right:5px}.high{color:#ff97a2}.medium{color:#ffd17b}.low{color:#98c0ff}.resolved{opacity:.55}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+input,textarea,select{width:100%;background:#0d0b17;color:white;border:1px solid var(--line);border-radius:10px;padding:10px;margin:5px 0 12px}
+label{font-size:13px;color:var(--muted)}pre{white-space:pre-wrap;background:#090812;border:1px solid var(--line);padding:12px;border-radius:12px;overflow:auto}
+.callout{border-left:3px solid var(--purple2);padding:12px;background:rgba(124,77,255,.08);border-radius:8px}
+.status-open{color:var(--warn)}.status-resolved{color:var(--ok)}.source{color:#bba7ff;text-decoration:underline;cursor:pointer}
+.hidden{display:none}.clickable{cursor:pointer;transition:border-color .18s,transform .18s,background .18s}.clickable:hover,.clickable:focus-visible{border-color:#8d6aff;background:#19132d;transform:translateY(-1px);outline:none}.linkbtn{border:0;background:transparent;color:var(--purple2);padding:0;text-align:left;font-weight:700}.linkbtn:hover{text-decoration:underline}.hint{font-size:11px;color:var(--purple2);margin-top:7px}.activity{display:flex;justify-content:space-between;gap:12px}.activity:after{content:"View details →";font-size:11px;color:var(--purple2)}
+.drawerback{position:fixed;z-index:60;inset:0;background:rgba(3,2,8,.72);backdrop-filter:blur(5px);display:flex;justify-content:flex-end}.drawer{width:min(560px,100%);height:100%;overflow:auto;background:linear-gradient(180deg,#19142d,#0d0b17);border-left:1px solid var(--line);padding:24px;box-shadow:-20px 0 60px rgba(0,0,0,.45);animation:slidein .22s ease-out}.drawerhead{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}.drawerclose{font-size:24px;padding:4px 10px}.detailgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.detailbox{padding:12px;border:1px solid var(--line);border-radius:12px;background:#0d0b17}.detailbox b{display:block;margin-top:4px}.actionbar{position:sticky;bottom:-24px;background:linear-gradient(transparent,#0d0b17 28%);padding:28px 0 4px;margin-top:15px}@keyframes slidein{from{transform:translateX(45px);opacity:0}to{transform:none;opacity:1}}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto;gap:4px}.navbtn{min-width:max-content}.main{padding:14px}.c3,.c4,.c5,.c6,.c7,.c8{grid-column:span 12}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">Case<span>Brief</span> <span class="badge">MVP prototype • synthetic data</span></div>
+  <button class="btn" onclick="showView('landing')">Public view</button>
+</div>
+<div class="layout">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main" id="app"></main>
+</div>
+<div id="detailRoot"></div>
+<script>
+const seed = {
+matter:{id:"matter-001",title:"State v. Jordan Hale",number:"CR-26-04192",client:"Jordan Hale",attorney:"Avery Chen",stage:"Pretrial / motion review",nextDeadline:"2026-08-26",jurisdiction:"Fictional State Court"},
+documents:[
+{id:"doc-1",type:"Police report",title:"Incident Report 26-1841",date:"2026-07-12",reviewed:true,excerpt:"Officer report states vehicle stop occurred at 22:14 and a black backpack was located behind the passenger seat. Report references body-camera file BC-1841-A."},
+{id:"doc-2",type:"Witness statement",title:"Mara Wells Interview",date:"2026-07-12",reviewed:false,excerpt:"Witness states the stop began around 21:55 and says the backpack was already on the curb when she arrived."},
+{id:"doc-3",type:"Evidence log",title:"Property & Evidence Log",date:"2026-07-12",reviewed:false,excerpt:"Lists backpack, sealed packet, phone. No body-camera file appears in produced inventory."},
+{id:"doc-4",type:"Charging document",title:"Information",date:"2026-07-14",reviewed:true,excerpt:"Alleges possession of a controlled substance and paraphernalia."},
+{id:"doc-5",type:"Transcript",title:"Initial Hearing Excerpt",date:"2026-07-15",reviewed:false,excerpt:"Defense orally requests preservation of all video evidence. No written preservation order appears in the packet."},
+{id:"doc-6",type:"Court order",title:"Scheduling Order",date:"2026-07-18",reviewed:true,excerpt:"Motions due August 26, 2026."},
+{id:"doc-7",type:"Attorney note",title:"Defense Intake Note",date:"2026-07-16",reviewed:false,excerpt:"Client says backpack belonged to another occupant. Record presently contains no ownership documentation."},
+{id:"doc-8",type:"Correspondence",title:"Discovery Follow-up Email",date:"2026-08-02",reviewed:false,excerpt:"Requests BC-1841-A body-camera video and complete chain-of-custody documentation."}
+],
+evidence:[
+{id:"ev-1",name:"Black backpack",status:"in inventory",related:["doc-1","doc-3"]},
+{id:"ev-2",name:"Sealed packet",status:"in inventory",related:["doc-3"]},
+{id:"ev-3",name:"Phone",status:"in inventory",related:["doc-3"]},
+{id:"ev-4",name:"Body-camera BC-1841-A",status:"referenced but missing",related:["doc-1","doc-8"]}
+],
+witnesses:[
+{id:"wit-1",name:"Mara Wells",role:"Civilian witness",statement:"Stop began about 21:55; backpack was on curb when she arrived.",flags:["Time conflicts with incident report","Backpack location conflicts with incident report"]},
+{id:"wit-2",name:"Officer Rowan Pike",role:"Reporting officer",statement:"Stop occurred at 22:14; backpack located behind passenger seat.",flags:["Body-camera referenced but not produced"]}
+],
+timeline:[
+{id:"tl-1",time:"2026-07-12 21:55",kind:"allegation",text:"Witness reports stop already underway.",sources:["doc-2"]},
+{id:"tl-2",time:"2026-07-12 22:14",kind:"established_fact",text:"Incident report records vehicle stop.",sources:["doc-1"]},
+{id:"tl-3",time:"2026-07-12 22:20",kind:"established_fact",text:"Backpack and sealed packet entered into evidence.",sources:["doc-3"]},
+{id:"tl-4",time:"2026-07-15 09:10",kind:"established_fact",text:"Defense orally requests preservation of video.",sources:["doc-5"]},
+{id:"tl-5",time:"2026-07-15 09:11–10:02",kind:"record_gap",text:"Record packet does not explain events during this interval.",sources:["doc-5"]},
+{id:"tl-6",time:"2026-07-18",kind:"established_fact",text:"Scheduling order entered; motions due August 26.",sources:["doc-6"]}
+],
+issues:[
+{id:"i1",category:"contradiction",severity:"high",weight:9,status:"open",statement:"The reported start time appears inconsistent across the incident report and witness statement.",why:"Police report records 22:14; witness reports approximately 21:55.",sources:["doc-1","doc-2"]},
+{id:"i2",category:"contradiction",severity:"high",weight:9,status:"open",statement:"The recorded location of the backpack appears inconsistent across sources.",why:"Officer report says behind passenger seat; witness says already on curb.",sources:["doc-1","doc-2"]},
+{id:"i3",category:"missing_evidence",severity:"high",weight:10,status:"open",statement:"Body-camera file BC-1841-A is referenced but is absent from the produced evidence inventory.",why:"Referenced in incident report and discovery follow-up; not listed in evidence production.",sources:["doc-1","doc-3","doc-8"]},
+{id:"i4",category:"timeline_gap",severity:"medium",weight:7,status:"open",statement:"The current packet contains a meaningful chronology gap following the preservation request.",why:"No packet source explains the interval.",sources:["doc-5"]},
+{id:"i5",category:"deadline",severity:"high",weight:8,status:"open",statement:"A motion deadline is approaching and remains active.",why:"Scheduling order sets motions due August 26, 2026.",sources:["doc-6"]},
+{id:"i6",category:"unreviewed_document",severity:"medium",weight:4,status:"open",statement:"Witness interview remains unreviewed.",why:"Document review status is incomplete.",sources:["doc-2"]},
+{id:"i7",category:"unreviewed_document",severity:"medium",weight:4,status:"open",statement:"Evidence log remains unreviewed.",why:"Document review status is incomplete.",sources:["doc-3"]},
+{id:"i8",category:"unsupported_assertion",severity:"medium",weight:6,status:"open",statement:"The current packet does not independently establish ownership of the backpack.",why:"Client attribution appears only in defense intake note.",sources:["doc-7"]},
+{id:"i9",category:"research_needed",severity:"medium",weight:6,status:"open",statement:"Attorney review is needed to determine whether any preservation or discovery issue warrants further legal research.",why:"Video is referenced but not produced; legal significance depends on jurisdiction and procedural context.",sources:["doc-1","doc-5","doc-8"]},
+{id:"i10",category:"source_support",severity:"low",weight:3,status:"open",statement:"The oral preservation request appears in only one source in the current packet.",why:"No written preservation order or corroborating docket entry is included.",sources:["doc-5"]}
+]
+};
+let data = JSON.parse(localStorage.getItem("casebrief_demo_state")||"null") || seed;
+let current="landing";
+function save(){localStorage.setItem("casebrief_demo_state",JSON.stringify(data))}
+function score(){return Math.max(0,100-data.issues.filter(x=>x.status==="open").reduce((s,x)=>s+x.weight,0))}
+function nav(){
+const items=["landing","dashboard","review","timeline","evidence","witnesses","documents","umg","safeguards","survey"];
+const labels={landing:"Public",dashboard:"Dashboard",review:"Review Queue",timeline:"Timeline",evidence:"Evidence",witnesses:"Witnesses",documents:"Documents",umg:"UMG Runtime",safeguards:"Safeguards",survey:"Attorney Survey"};
+document.getElementById("sidebar").innerHTML=items.map(i=>`<button class="navbtn ${current===i?"active":""}" onclick="showView('${i}')">${labels[i]}</button>`).join("");
+}
+function showView(v){current=v;nav();render()}
+function srcChips(arr){return arr.map(id=>{let d=data.documents.find(x=>x.id===id);return `<button class="pill source" onclick="openDetail('document','${id}')">${d?d.title:id}</button>`}).join("")}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function closeDetail(){document.getElementById("detailRoot").innerHTML=""}
+function openDetail(type,id){
+ let x,title="Details",body="",actions="";
+ if(type==="matter"){x=data.matter;title=x.title;body=`<div class="detailgrid"><div class="detailbox"><span class="muted">Matter number</span><b>${x.number}</b></div><div class="detailbox"><span class="muted">Jurisdiction</span><b>${x.jurisdiction}</b></div><div class="detailbox"><span class="muted">Client</span><b><button class="linkbtn" onclick="openDetail('person','client')">${x.client}</button></b></div><div class="detailbox"><span class="muted">Lead attorney</span><b><button class="linkbtn" onclick="openDetail('person','attorney')">${x.attorney}</button></b></div></div><h3>Current posture</h3><p>${x.stage}</p>`;actions=`<button class="btn primary" onclick="closeDetail();showView('timeline')">Open full timeline</button>`}
+ if(type==="person"){let attorney=id==="attorney";title=attorney?data.matter.attorney:data.matter.client;body=`<div class="kicker">${attorney?"Lead attorney":"Client"}</div><p>${attorney?"Assigned counsel with final authority over findings, issue status, work product, and release decisions.":"Primary represented person for this synthetic demonstration matter."}</p><div class="detailgrid"><div class="detailbox"><span class="muted">Matter</span><b>${data.matter.number}</b></div><div class="detailbox"><span class="muted">Status</span><b>Active</b></div></div>`;actions=`<button class="btn" onclick="closeDetail();showView('witnesses')">Related people</button>`}
+ if(type==="issue"){x=data.issues.find(v=>v.id===id);title="Case health factor";body=`<div><span class="pill ${x.severity}">${x.severity} priority</span><span class="pill">${x.category.replaceAll('_',' ')}</span><span class="pill">${x.status}</span></div><h3>${x.statement}</h3><p class="muted">${x.why}</p><h3>Source trail</h3>${srcChips(x.sources)}<div class="detailbox" style="margin-top:16px"><span class="muted">Effect on review completeness</span><b>-${x.weight} points while unresolved</b></div>`;actions=x.status==="open"?`<button class="btn good" onclick="setIssue('${x.id}','resolved');closeDetail()">Resolve</button><button class="btn" onclick="setIssue('${x.id}','reviewed');closeDetail()">Mark reviewed</button><button class="btn bad" onclick="setIssue('${x.id}','dismissed');closeDetail()">Dismiss</button>`:`<button class="btn" onclick="setIssue('${x.id}','open');closeDetail()">Reopen item</button>`}
+ if(type==="document"){x=data.documents.find(v=>v.id===id);title=x.title;let linked=data.issues.filter(i=>i.sources.includes(id));body=`<div><span class="pill">${x.type}</span><span class="pill">${x.reviewed?"reviewed":"unreviewed"}</span></div><div class="detailgrid"><div class="detailbox"><span class="muted">Document ID</span><b>${x.id}</b></div><div class="detailbox"><span class="muted">Date</span><b>${x.date}</b></div></div><h3>Indexed excerpt</h3><p>${esc(x.excerpt)}</p><h3>Linked review items (${linked.length})</h3>${linked.length?linked.map(i=>`<button class="item clickable" style="display:block;width:100%;color:white;text-align:left" onclick="openDetail('issue','${i.id}')">${i.statement}</button>`).join(""):"<p class='muted'>No open finding currently cites this source.</p>"}`;actions=`<button class="btn primary" onclick="toggleDocument('${x.id}')">${x.reviewed?"Mark unreviewed":"Mark reviewed"}</button><button class="btn" onclick="closeDetail();showView('documents')">Open library</button>`}
+ if(type==="evidence"){x=data.evidence.find(v=>v.id===id);title=x.name;body=`<span class="pill ${x.status.includes('missing')?'high':'low'}">${x.status}</span><h3>Related source records</h3>${srcChips(x.related)}<p class="callout">Evidence status is descriptive only. CaseBrief does not alter, authenticate, or make custody findings about evidence.</p>`;actions=`<button class="btn" onclick="closeDetail();showView('timeline')">View in chronology</button>`}
+ if(type==="witness"){x=data.witnesses.find(v=>v.id===id);title=x.name;body=`<div class="muted">${x.role}</div><h3>Statement summary</h3><p>${x.statement}</p><h3>Consistency flags</h3><ul>${x.flags.map(f=>`<li>${f}</li>`).join("")}</ul><p class="callout">These are comparison flags, not credibility findings.</p>`;actions=`<button class="btn primary" onclick="closeDetail();showView('review')">Review linked issues</button>`}
+ if(type==="timeline"){x=data.timeline.find(v=>v.id===id);title=x.text;body=`<span class="pill">${x.kind.replaceAll('_',' ')}</span><div class="detailbox" style="margin-top:16px"><span class="muted">Recorded time</span><b>${x.time}</b></div><h3>Supporting sources</h3>${srcChips(x.sources)}`;actions=`<button class="btn" onclick="closeDetail();showView('timeline')">Open full chronology</button>`}
+ if(type==="deadline"){title="Motion deadline";body=`<div class="metric">Aug 26, 2026</div><p>Motions due under the scheduling order.</p><h3>Controlling source</h3>${srcChips(['doc-6'])}<div class="callout"><b>Workflow prompt:</b> confirm drafting status, research status, approvals, and filing responsibility.</div>`;actions=`<button class="btn primary" onclick="openDetail('document','doc-6')">Review scheduling order</button>`}
+ if(type==="activity"){let activities={email:["Discovery follow-up email added","Aug 2","doc-8"],order:["Scheduling order indexed","Jul 18","doc-6"],hearing:["Hearing transcript excerpt linked","Jul 15","doc-5"]};x=activities[id];title=x[0];body=`<div class="detailbox"><span class="muted">Activity date</span><b>${x[1]}</b></div><h3>Related record</h3>${srcChips([x[2]])}`;actions=`<button class="btn primary" onclick="openDetail('document','${x[2]}')">Open source</button>`}
+ document.getElementById("detailRoot").innerHTML=`<div class="drawerback" onclick="if(event.target===this)closeDetail()"><aside class="drawer" role="dialog" aria-modal="true"><div class="drawerhead"><div><div class="kicker">Inspect record</div><h2>${title}</h2></div><button class="btn drawerclose" aria-label="Close details" onclick="closeDetail()">×</button></div>${body}<div class="row actionbar">${actions}</div></aside></div>`;
+}
+function toggleDocument(id){let d=data.documents.find(x=>x.id===id);d.reviewed=!d.reviewed;save();render();openDetail('document',id)}
+function landing(){
+return `<section class="hero"><div class="kicker">Legal case review, made inspectable</div><h1>Turn a case file pile into a case you can actually see.</h1><p>CaseBrief is a human-controlled legal case review workspace that organizes records, surfaces inconsistencies, tracks unresolved items, and preserves the source trail behind every finding.</p><div class="row"><button class="btn primary" onclick="showView('dashboard')">Open demo workspace</button><button class="btn" onclick="showView('survey')">Attorney research survey</button></div></section>
+<div class="grid" style="margin-top:14px"><div class="card c4"><div class="kicker">Organize</div><h3>Timeline, evidence, witnesses, documents</h3><p class="muted">One linked matter model instead of disconnected notes.</p></div><div class="card c4"><div class="kicker">Surface</div><h3>Potential issues requiring review</h3><p class="muted">Neutral, source-linked findings without pretending AI is the lawyer.</p></div><div class="card c4"><div class="kicker">Control</div><h3>AI identifies. Human decides.</h3><p class="muted">Attorney authority, auditability, provenance, and explicit uncertainty.</p></div></div>`}
+function dashboard(){
+let s=score(), open=data.issues.filter(x=>x.status==="open").length;
+return `<div class="kicker">Synthetic demo matter</div><h2><button class="linkbtn" onclick="openDetail('matter','${data.matter.id}')">${data.matter.title}</button></h2><p class="muted"><button class="linkbtn" onclick="openDetail('matter','${data.matter.id}')">${data.matter.number}</button> • ${data.matter.stage} • Attorney: <button class="linkbtn" onclick="openDetail('person','attorney')">${data.matter.attorney}</button></p>
+<div class="grid"><div class="card c5 clickable" tabindex="0" onclick="openDetail('matter','${data.matter.id}')"><div class="orbwrap"><button class="orb" aria-label="Open ${s}% case health details" style="--pct:${s}" onclick="event.stopPropagation();showView('review')"><span class="liquid"></span><span class="shine"></span><span class="orbscore">${s}%</span></button><div><div class="kicker">Case Review Completeness</div><div class="metric">${s}%</div><div class="muted">${open} unresolved review items</div><div class="hint">Select the orb to inspect all factors →</div></div></div><p class="muted">A workload and review-completeness indicator—not a prediction of guilt, innocence, case merit, or outcome.</p></div>
+<div class="card c3 clickable" tabindex="0" onclick="openDetail('deadline')"><div class="kicker">Next deadline</div><div class="metric">Aug 26</div><div class="muted">Motions due</div><div class="hint">Open deadline record →</div></div>
+<div class="card c4"><div class="kicker">Open UMG Needs</div><h3>2 sandbox Needs</h3><div class="pill">body camera file</div><div class="pill">jurisdiction-specific authority</div></div>
+<div class="card c7"><h3>Factors Affecting Case Health</h3><p class="muted">Open items currently reducing review completeness. Select any factor for sources, context, and actions.</p>${data.issues.filter(x=>x.status==="open").slice(0,6).map(x=>`<div class="item clickable" tabindex="0" onclick="openDetail('issue','${x.id}')"><span class="pill ${x.severity}">${x.severity}</span><b>${x.category.replaceAll('_',' ')}</b><div class="muted">${x.statement}</div><div class="meta">-${x.weight} points while unresolved • Inspect →</div></div>`).join("")}<button class="btn" style="margin-top:12px" onclick="showView('review')">View all ${open} factors</button></div>
+<div class="card c5"><h3>Recent activity</h3><div class="list"><div class="item clickable activity" tabindex="0" onclick="openDetail('activity','email')"><span>Discovery follow-up email added<div class="meta">Aug 2</div></span></div><div class="item clickable activity" tabindex="0" onclick="openDetail('activity','order')"><span>Scheduling order indexed<div class="meta">Jul 18</div></span></div><div class="item clickable activity" tabindex="0" onclick="openDetail('activity','hearing')"><span>Hearing transcript excerpt linked<div class="meta">Jul 15</div></span></div></div></div></div>`}
+function review(){
+return `<div class="kicker">Human review queue</div><h2>Potential issues requiring attorney review</h2><p class="callout"><b>AI identifies. Human decides.</b> Findings are neutral prompts for review, not final legal conclusions.</p><div class="list">${data.issues.map(x=>`<div class="item ${x.status!=="open"?"resolved":""}"><div><span class="pill ${x.severity}">${x.severity}</span><span class="pill">${x.category}</span><span class="pill">${x.status}</span></div><h3>${x.statement}</h3><p class="muted">${x.why}</p><div>${srcChips(x.sources)}</div><div class="row" style="margin-top:10px">${x.status==="open"?`<button class="btn good" onclick="setIssue('${x.id}','resolved')">Resolve</button><button class="btn" onclick="setIssue('${x.id}','reviewed')">Mark reviewed</button><button class="btn bad" onclick="setIssue('${x.id}','dismissed')">Dismiss</button>`:`<button class="btn" onclick="setIssue('${x.id}','open')">Reopen</button>`}</div></div>`).join("")}</div>`}
+function setIssue(id,status){data.issues.find(x=>x.id===id).status=status;save();render()}
+function timeline(){
+return `<div class="kicker">Source-supported chronology</div><h2>Timeline</h2>${data.timeline.map(t=>`<div class="item clickable" tabindex="0" onclick="openDetail('timeline','${t.id}')"><span class="pill">${t.kind}</span><b>${t.time}</b><p>${t.text}</p>${srcChips(t.sources)}<div class="hint">Inspect event →</div></div>`).join("")}`}
+function evidence(){
+return `<div class="kicker">Evidence Hub</div><h2>Evidence</h2><div class="grid">${data.evidence.map(e=>`<div class="card c6 clickable" tabindex="0" onclick="openDetail('evidence','${e.id}')"><h3>${e.name}</h3><span class="pill ${e.status.includes("missing")?"high":"low"}">${e.status}</span><p class="muted">${e.related.length} related source record${e.related.length===1?'':'s'}</p><div class="hint">Inspect evidence record →</div></div>`).join("")}</div>`}
+function witnesses(){
+return `<div class="kicker">Witness Hub</div><h2>Witnesses & consistency flags</h2><div class="grid">${data.witnesses.map(w=>`<div class="card c6 clickable" tabindex="0" onclick="openDetail('witness','${w.id}')"><h3>${w.name}</h3><div class="muted">${w.role}</div><p>${w.statement}</p><b>${w.flags.length} consistency flag${w.flags.length===1?'':'s'}</b><p class="muted">No credibility or truth score is assigned.</p><div class="hint">Open witness profile →</div></div>`).join("")}</div>`}
+function documents(){
+return `<div class="kicker">Document Library</div><h2>Case documents</h2><table><thead><tr><th>Document</th><th>Type</th><th>Date</th><th>Status</th></tr></thead><tbody>${data.documents.map(d=>`<tr class="clickable" tabindex="0" onclick="openDetail('document','${d.id}')"><td><button class="linkbtn">${d.title}</button><div class="muted">${d.excerpt}</div><div class="hint">Open indexed document →</div></td><td>${d.type}</td><td>${d.date}</td><td><span class="pill ${d.reviewed?'low':'medium'}">${d.reviewed?"Reviewed":"Unreviewed"}</span></td></tr>`).join("")}</tbody></table>`}
+function umg(){
+const contract=`interface CaseBriefUMGFinding {
+  finding_id: string;
+  matter_id: string;
+  workflow: "RecordConsistencyReview" | "AppellateIssueAnalysis";
+  category: string;
+  statement: string;
+  classification: "established_fact" | "allegation" | "inference" | "record_gap";
+  severity: "low" | "medium" | "high";
+  confidence: number;
+  uncertainty_note: string;
+  requires_human_review: true;
+  sources: string[];
+  related_entity_ids: string[];
+  status: "open" | "reviewed" | "resolved" | "dismissed";
+  created_at: string;
+  runtime_session_id: string;
+  sleeve_version: string;
+}`;
+return `<div class="kicker">Sandbox contract mock — not a live UMG connection</div><h2>UMG Runtime / Analysis Trace</h2><div class="callout"><b>Architecture boundary:</b> CaseBrief remains the application. UMG supplies versioned cognitive/runtime contracts. CaseBrief executes its own model, RAG, document, and legal-research tools during the pilot.</div>
+<div class="grid" style="margin-top:14px"><div class="card c12"><h3>Pilot flow</h3><pre>CaseBrief matter state
+        ↓
+UMG compile
+        ↓
+RuntimeSpec + Trace + Needs + ToolRequests
+        ↓
+CaseBrief executes document / research / model services
+        ↓
+ToolResults + State Updates
+        ↓
+UMG recompile → updated Trace</pre></div>
+<div class="card c6"><div class="kicker">Workflow</div><h3>Record Consistency Review</h3><p>Deterministic demo harness surfaces the seeded contradictions and record gaps.</p><button class="btn primary" onclick="runConsistency()">Run sandbox review</button><div id="runner"></div></div>
+<div class="card c6"><div class="kicker">Recommended future live pilot</div><h3>Appellate Issue Analysis</h3><p class="muted">One narrow versioned Sleeve, one sandbox, one document path, one legal research path, one model invocation path, one Trace viewer.</p></div>
+<div class="card c12"><h3>Example UMG state</h3><pre>USE: Analyze potential appellate issues.
+AIM: Identify viable issues for attorney review.
+NEED: Missing body-camera file BC-1841-A.
+TOOLREQUEST: matter.fetch_document(BC-1841-A)
+TOOLRESULT: fulfilled by CaseBrief backend
+RUNTIME EVENT: state updated; UMG recompiles</pre></div>
+<div class="card c12"><h3>Structured output contract</h3><pre>${contract.replaceAll("<","&lt;")}</pre></div></div>`}
+function runConsistency(){
+let hits=data.issues.filter(x=>["contradiction","missing_evidence","timeline_gap","unsupported_assertion"].includes(x.category));
+document.getElementById("runner").innerHTML=`<div class="list" style="margin-top:10px">${hits.map(x=>`<div class="item"><b>${x.category}</b><div>${x.statement}</div><div class="meta">${x.sources.join(", ")}</div></div>`).join("")}</div>`
+}
+function safeguards(){
+return `<div class="kicker">Stakeholder & safeguards</div><h2>What CaseBrief does — and does not do</h2><div class="grid"><div class="card c6"><h3>CaseBrief does</h3><ul><li>Organize records</li><li>Cross-reference facts, events, evidence, witnesses and documents</li><li>Surface inconsistencies and gaps for review</li><li>Summarize with source support</li><li>Track unresolved items and deadlines</li><li>Preserve provenance and human review status</li></ul></div><div class="card c6"><h3>CaseBrief does not</h3><ul><li>Replace lawyers</li><li>Decide guilt or innocence</li><li>Predict case outcomes</li><li>Recommend sentences</li><li>Alter evidence</li><li>Hide provenance</li><li>Autonomously file legal documents</li><li>Make final legal judgments</li></ul></div><div class="card c12"><h3>Control principle</h3><p class="metric" style="font-size:24px">AI identifies. Human decides.</p><p class="muted">The product should expose uncertainty, preserve adverse facts, avoid silently resolving contradictions, and keep attorney approval at the release gate.</p></div></div>`}
+function survey(){
+return `<div class="kicker">3–5 minute product research survey</div><h2>Attorney workflow validation</h2><p class="muted">This is product research, not legal intake.</p><form onsubmit="submitSurvey(event)">
+<label>Role</label><select name="role"><option>Public defender</option><option>Private criminal defense</option><option>Prosecutor</option><option>Appellate attorney</option><option>Other</option></select>
+<label>Practice area</label><input name="practice" />
+<label>Firm / office size</label><input name="size" />
+<label>Years of experience</label><input name="years" />
+<label>How do you organize cases now?</label><textarea name="organize"></textarea>
+<label>Where does case-review time disappear?</label><textarea name="time"></textarea>
+<label>What do you repeatedly have to reconstruct?</label><textarea name="reconstruct"></textarea>
+<label>What tends to get missed or found late?</label><textarea name="missed"></textarea>
+<label>Which tools or workflows do you dislike?</label><textarea name="dislike"></textarea>
+<label>Which tasks would you delegate to AI?</label><textarea name="delegate"></textarea>
+<label>Which tasks would you never delegate to AI?</label><textarea name="never"></textarea>
+<label>Top 3 CaseBrief capabilities you would value</label><textarea name="top3"></textarea>
+<label>Would you consider a 15-minute follow-up?</label><select name="follow"><option>Yes</option><option>No</option><option>Maybe</option></select>
+<label>Optional contact</label><input name="contact" />
+<button class="btn primary" type="submit">Save demo response</button></form><div id="surveyMsg"></div>`}
+function submitSurvey(e){e.preventDefault();let vals=Object.fromEntries(new FormData(e.target));let arr=JSON.parse(localStorage.getItem("casebrief_survey")||"[]");arr.push(vals);localStorage.setItem("casebrief_survey",JSON.stringify(arr));document.getElementById("surveyMsg").innerHTML='<p class="callout">Saved locally in this browser for the prototype.</p>';e.target.reset()}
+function render(){const map={landing,dashboard,review,timeline,evidence,witnesses,documents,umg,safeguards,survey};document.getElementById("app").innerHTML=map[current]()}
+nav();render();
+</script>
+</body></html>
