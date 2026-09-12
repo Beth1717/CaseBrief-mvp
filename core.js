@@ -16,7 +16,7 @@ function fmtDate(v){if(!v)return 'Not recorded';const d=new Date(v);return Numbe
 function updateStorageNotice(){let el=document.getElementById('storageNotice');if(!el){el=document.createElement('div');el.id='storageNotice';el.className='callout notice';document.querySelector('.layout').before(el)}el.hidden=storageOK;el.textContent='Browser storage is unavailable. Changes are only retained for this tab session.'}
 function syncPicker(){document.getElementById('casePicker').innerHTML=Object.values(workspace.cases).map(c=>`<option value="${c.matter.id}" ${c.matter.id===data.matter.id?'selected':''}>${esc(c.matter.title)}</option>`).join('')}
 function switchCase(id){if(!workspace.cases[id])return;const from=data.matter.id;closeDetail();data=workspace.cases[id];ensureDefaults(data);workspace.active=id;record('case.switched',id,{from,to:id});syncPicker();showView('dashboard')}
-
+let current='landing',returnFocus=null;
 function nav(){
  const groups=[
   ['Matter',['dashboard','review','timeline','evidence','witnesses','documents','authorities']],
@@ -29,4 +29,3 @@ function nav(){
 }
 function showView(v){current=v;record('view.opened',v);nav();render()}
 function courtProgress(compact=false){const idx=Math.max(0,Math.min(stages.length-1,data.matter.courtStage||0));return `<div class="court-shell"><div class="court-track">${stages.map((s,i)=>`<div class="stage ${i<idx?'done':''} ${i===idx?'current':''} clickable" tabindex="0" onclick="openDetail('courtstage','${i}')"><div class="stage-dot"></div><div class="stage-name">${esc(s)}</div>${compact?'':`<div class="stage-sub">${i<idx?'completed':i===idx?'current stage':'upcoming'}</div>`}</div>`).join('')}</div></div>`}
-
