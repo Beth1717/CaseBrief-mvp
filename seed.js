@@ -2,7 +2,7 @@ const STORE='casebrief_workspace_v3';
 const actor={id:'demo-reviewer',name:'Demo reviewer',type:'human',verified:false};
 const systemActor={id:'casebrief-demo-ai',name:'CaseBrief demo AI',type:'system',verified:false};
 const sessionId=crypto.randomUUID();
-let current='dashboard', returnFocus=null, storageOK=true;
+let current='landing', returnFocus=null, storageOK=true;
 const stages=['Intake','Initial appearance','Discovery','Motions','Pretrial','Trial','Sentencing','Appeal'];
 
 const primarySeed={
@@ -67,4 +67,3 @@ const primarySeed={
  drafts:[]
 };
 const intakeSeed={matter:{id:'matter-002',title:'Morgan Ellis — Intake',number:'DEMO-002',client:'Morgan Ellis',attorney:'Avery Chen',stage:'Initial intake',courtStage:0,nextDeadline:null,jurisdiction:'Synthetic intake matter'},documents:[],evidence:[],witnesses:[],timeline:[],issues:[],authorities:[],contacts:[{id:'m2-client',name:'Morgan Ellis',role:'Client',channel:'Secure client portal',status:'Pending invite'},{id:'m2-attorney',name:'Avery Chen',role:'Lead attorney',channel:'CaseBrief workspace',status:'Active'}],messages:[],assistantMessages:[{role:'ai',at:new Date().toISOString(),text:'This intake matter does not have records yet. Add documents before asking for a source-grounded case analysis.'}],drafts:[]};
-
