@@ -31,3 +31,6 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 @media(max-width:1050px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;overflow:auto;gap:4px}.navgroup{display:none}.navbtn{min-width:max-content}.main{padding:15px}.c3,.c4,.c5,.c6,.c7,.c8{grid-column:span 12}.split{grid-template-columns:1fr}.orbwrap{flex-wrap:wrap}.topbar{position:static}.sidebar{top:auto}.layout{min-height:0}}
 @media(max-width:600px){.topbar{align-items:flex-start;flex-direction:column}.topbar .controls{width:100%}.topbar label{width:100%}.topbar select{min-width:0}.main{padding:12px}.hero{padding:20px}.detailgrid{grid-template-columns:1fr}.orb{width:196px;height:196px;min-width:196px}.crihover{width:220px;height:220px;left:-12px;top:-12px;padding:27px 25px}.paper{padding:20px}.message-row{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+/* Keep wide procedural tracks/nav content contained on narrow screens. */
+.layout,.main,.sidebar,.card{min-width:0}
+@media(max-width:1050px){.layout{grid-template-columns:minmax(0,1fr)}.sidebar,.main{width:100%;max-width:100vw}}
