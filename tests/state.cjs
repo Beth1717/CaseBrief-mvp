@@ -1,0 +1,16 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),{webcrypto}=require('node:crypto');
+const elements=new Map();const get=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',value:'',hidden:false,focus(){},before(){},click(){}});return elements.get(id)};
+const memory=new Map();const context={structuredClone,crypto:webcrypto,console,Blob,URL,setTimeout,localStorage:{getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v)},document:{getElementById:get,querySelector:s=>s==='[role=dialog] button'?get('dialogButton'):s==='.layout'?get('layout'):null,querySelectorAll:()=>[],createElement:()=>get('created'),addEventListener(){},activeElement:null},window:{addEventListener(){}}};vm.createContext(context);
+const html=fs.readFileSync('index.html','utf8');for(const block of html.matchAll(/<script>([\s\S]*?)<\/script>/g))vm.runInContext(block[1],context);
+const run=s=>vm.runInContext(s,context);
+assert.equal(run('score()'),26);
+run("setIssue('rights-1','reviewed')");get('decisionReason').value=' ';get('decisionForm').onsubmit({preventDefault(){}});assert.equal(run("data.issues.find(x=>x.id==='rights-1').status"),'open');
+get('decisionReason').value='Compared doc-1 and doc-8; unresolved.';get('decisionForm').onsubmit({preventDefault(){}});assert.equal(run('score()'),26);
+run("setIssue('rights-1','dismissed')");get('decisionReason').value='<script>unsafe</script>';get('decisionForm').onsubmit({preventDefault(){}});assert.equal(run('score()'),34);assert.ok(run('activityHistory()').includes('&lt;script&gt;unsafe&lt;/script&gt;'));
+assert.equal(run("workspace.events.filter(e=>e.action==='issue.status_changed').length"),2);
+run("switchCase('matter-002')");assert.ok(run('dashboard()').includes('CRI pending'));assert.equal(run('data.documents.length'),0);run("switchCase('matter-001')");assert.equal(run('score()'),34);
+for(const view of ['landing','dashboard','review','timeline','evidence','witnesses','documents','umg','audit','safeguards','survey'])run(`showView('${view}')`);
+run("showView('umg');runConsistency()");assert.ok(run("workspace.events.some(e=>e.action==='analysis.completed'&&e.actor.type==='system')"));
+assert.equal(JSON.parse(memory.get('casebrief_workspace_v2')).cases['matter-001'].issues.find(x=>x.id==='rights-1').status,'dismissed');
+context.localStorage.setItem=()=>{throw Error('quota')};run("record('test.storage_failure','test')");assert.equal(run('storageOK'),false);
+console.log('PASS: script execution, 11 views, required reasons, reviewed/dismissed CRI, escaped history, case isolation, saved state, system analysis events, storage failure notice.');
