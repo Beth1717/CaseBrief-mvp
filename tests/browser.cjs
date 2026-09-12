@@ -8,6 +8,7 @@ const {chromium}=require('playwright');
  await page.getByRole('button',{name:'Open demo workspace'}).click();
  const before=await page.evaluate(()=>score());
  await page.locator('.orb').hover();
+ await page.waitForTimeout(250);
  const hoverOpacity=await page.locator('.crihover').evaluate(el=>getComputedStyle(el).opacity);
  if(hoverOpacity!=='1')throw Error('CRI circular hover overlay did not reveal');
  await page.getByText('potential rights violation',{exact:true}).waitFor();
