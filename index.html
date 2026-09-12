@@ -58,6 +58,14 @@ label{font-size:13px;color:var(--muted)}pre{white-space:pre-wrap;background:#090
 button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #e0c9ff;outline-offset:3px}.topbar select{margin:0;min-width:220px}.topbar label{font-size:11px}.tablewrap{overflow-x:auto}.auditnotice{color:#ffdb94}.reason{min-height:95px}
 @media(max-width:600px){.topbar{position:static;flex-wrap:wrap;gap:10px}.orbwrap{flex-wrap:wrap}.crihover{width:240px}.hero{padding:20px}.detailgrid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*:before{animation:none!important;transition:none!important}}
+
+/* Light controls need explicit foreground/background pairs across browsers. */
+button.source{background:#f7f4fc;color:#352047;border-color:#d0c3de;font-size:12px;font-weight:600;text-decoration-thickness:1px}
+button.source:hover,button.source:focus-visible{background:#ebe3f5;color:#241332;border-color:#73508f}
+button.source:focus-visible{outline:2px solid #c7adff;outline-offset:3px}
+select option,select optgroup{background:#ffffff;color:#241332}
+input:autofill,textarea:autofill{color:#241332;background:#f7f4fc}
+input:-webkit-autofill,textarea:-webkit-autofill{-webkit-text-fill-color:#241332;caret-color:#241332}
 </style>
 </head>
 <body>
