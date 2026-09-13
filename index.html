@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="referrer" content="no-referrer" />
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()" />
 <title>CaseBrief MVP</title>
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -11,7 +13,11 @@
   <div class="brand">Case<span>Brief</span> <span class="badge">MVP • synthetic demo</span></div>
   <div class="controls">
     <label>Active case<select id="casePicker" onchange="switchCase(this.value)"></select></label>
-    <button class="btn" onclick="showView('assistant')">Ask CaseBrief AI</button>
+    <span id="roleControl"></span>
+    <button class="btn" onclick="guardedView('ai_use','assistant')">Ask CaseBrief AI</button>
+    <button class="btn ghost" onclick="showView('security')">Security</button>
+    <button class="btn ghost" onclick="togglePrivacyMode()">Privacy</button>
+    <button class="btn ghost" onclick="lockSession('manual')">Lock</button>
     <button class="btn ghost" onclick="showView('landing')">Public view</button>
   </div>
 </div>
@@ -20,7 +26,9 @@
   <main class="main" id="app"></main>
 </div>
 <div id="detailRoot"></div>
+<div id="securityToast" class="security-toast" hidden></div>
 <script src="seed.js"></script>
+<script src="security.js"></script>
 <script src="core.js"></script>
 <script src="views-matter.js"></script>
 <script src="views-work.js"></script>
