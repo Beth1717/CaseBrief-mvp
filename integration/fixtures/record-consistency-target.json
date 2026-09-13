@@ -1,0 +1,35 @@
+{
+  "fixture_version": "1.0.0",
+  "synthetic_only": true,
+  "actor": {
+    "id": "demo-reviewer",
+    "type": "human",
+    "verified": false,
+    "allowed_matter_ids": ["matter-001"],
+    "denied_matter_ids": ["matter-002"]
+  },
+  "matter": {
+    "id": "matter-001",
+    "trusted_source_ids": ["doc-1", "doc-2", "doc-3", "doc-5", "doc-8"],
+    "independent_expected_records": [
+      {
+        "record_id": "BC-1841-A",
+        "record_type": "body_camera_video",
+        "basis_source_ids": ["doc-1", "doc-5", "doc-8"],
+        "expected_behavior": "remain_visible_as_unresolved_expectation_until_explicitly_resolved_or_dismissed"
+      }
+    ]
+  },
+  "adversarial_claim": {
+    "id": "probe-unsupported-1",
+    "category": "unsupported_assertion",
+    "statement": "Synthetic adversarial assertion with citation-looking metadata but no trusted support.",
+    "sources": ["doc-NOT-TRUSTED"],
+    "expected_behavior": "reject_or_quarantine"
+  },
+  "wrong_matter_probe": {
+    "actor_id": "demo-reviewer",
+    "requested_matter_id": "matter-002",
+    "expected_behavior": "deny"
+  }
+}

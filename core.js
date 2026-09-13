@@ -1,6 +1,13 @@
 function freshWorkspace(){return {version:3,active:'matter-001',cases:{'matter-001':structuredClone(primarySeed),'matter-002':structuredClone(intakeSeed)},events:[]}}
 let workspace;try{workspace=JSON.parse(localStorage.getItem(STORE));if(!workspace||workspace.version!==3)workspace=freshWorkspace()}catch{workspace=freshWorkspace();storageOK=false}
 let data=workspace.cases[workspace.active]||workspace.cases['matter-001'];
+// Explicit same-origin integration boundary. Top-level lexical bindings are
+// not properties of globalThis, so host controls consume state through here.
+globalThis.caseBriefHostApi={
+ get data(){return data},
+ get workspace(){return workspace},
+ get actor(){return actor}
+};
 function ensureDefaults(d){for(const [k,v] of Object.entries({documents:[],evidence:[],witnesses:[],timeline:[],issues:[],authorities:[],contacts:[],messages:[],assistantMessages:[],drafts:[]})){if(!Array.isArray(d[k]))d[k]=structuredClone(v)}if(typeof d.matter.courtStage!=='number')d.matter.courtStage=0}
 Object.values(workspace.cases).forEach(ensureDefaults);
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
