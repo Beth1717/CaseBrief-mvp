@@ -28,6 +28,8 @@ The supplied fresh-extraction receipt reports the remediation package as locally
 3. **Independent expectation ledger** — expected record `BC-1841-A` is tracked outside the issue/inventory row. Removing the ordinary missing-evidence finding therefore does not erase the unresolved expectation.
 4. **Audit-visible guard decisions** — each guarded analysis records accepted finding ids, quarantined finding ids, expectation states, and the control version.
 
+The guarded boundary is now explicitly linked to the project-authored sleeve `SLV.CASEBRIEF.LEGALANALYSIS.v0.1` revision 1. Installation and analysis audit events include the sleeve identity; analysis events also include the applied control-block IDs. `integration/tests/casebrief-sleeve-contract.cjs` verifies that the adapter manifest matches the checked-in sleeve and that the external-action stack remains both `BLOCKED` and locked `OFF`.
+
 This is intentionally conservative. It does not attempt to infer semantic truth from arbitrary prose and citations. It implements the same trust-boundary principle described by the v0.2.1 remediation: trusted source identity and reviewed interpretation are separate from proposed inference.
 
 ## Four-probe adoption target
@@ -62,6 +64,7 @@ Before merge to the public demo or any real-data environment:
 
 - run the four host-adoption probes from a clean checkout and capture stdout, environment, exact head SHA, and package hash;
 - run the modular `tests/state.cjs` regression;
+- run `integration/tests/casebrief-sleeve-contract.cjs` to prevent adapter/sleeve drift;
 - run browser regression with Chromium/Playwright where available;
 - replace the synthetic grant/catalogue stores with authenticated server-side CaseBrief repositories before handling real matters;
 - map these host controls to the actual UMG/PB1 service boundary rather than treating the browser module as the production security boundary.

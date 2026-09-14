@@ -2,6 +2,21 @@
   'use strict';
 
   const CONTROL_VERSION = 'casebrief-host-controls.v0.2.1';
+  const SLEEVE_CONTRACT = Object.freeze({
+    profile: 'umg.project-lab.sleeve/1.0',
+    id: 'SLV.CASEBRIEF.LEGALANALYSIS.v0.1',
+    revision: 1,
+    sourcePath: 'integration/CASEBRIEF_UMG_SLEEVE_v0.1.json',
+    requiredBlockIds: Object.freeze([
+      'NB.CB.ROUTE.SCOPE',
+      'NB.CB.INTAKE.PROVENANCE',
+      'NB.CB.CONSISTENCY.CLAIMS',
+      'NB.CB.CONFIDENCE.CALIBRATE',
+      'NB.CB.AUDIT.EVENT',
+      'NB.CB.REVIEW.GATE',
+      'NB.CB.ACTION.EXTERNAL'
+    ])
+  });
 
   const reviewedFindingCatalog = new Map([
     ['i1', {
@@ -120,6 +135,9 @@
 
       audit('analysis.guard_applied', runId, {
         controlVersion: CONTROL_VERSION,
+        sleeveId: SLEEVE_CONTRACT.id,
+        sleeveRevision: SLEEVE_CONTRACT.revision,
+        appliedBlockIds: SLEEVE_CONTRACT.requiredBlockIds,
         acceptedFindingIds: accepted.map(x => x.id),
         quarantinedFindingIds: quarantined.map(x => x.id),
         expectationStates: expectations.map(x => ({id: x.id, recordId: x.recordId, status: x.status}))
@@ -139,11 +157,12 @@
 
       const runner = host.document.getElementById('runner');
       runner.innerHTML = `<div class="list" style="margin-top:10px">${findingHtml}${expectationHtml}</div>${quarantineHtml}`;
-      return {runId, accepted, quarantined, expectations};
+      return {runId, accepted, quarantined, expectations, sleeve: SLEEVE_CONTRACT};
     };
 
     host.caseBriefHostControls = {
       version: CONTROL_VERSION,
+      sleeve: SLEEVE_CONTRACT,
       findingIsTrusted,
       authorizedMatter,
       expectedRecordStatus,
@@ -152,7 +171,12 @@
     };
 
     host.syncPicker();
-    audit('host_controls.installed', CONTROL_VERSION, {syntheticOnly: true});
+    audit('host_controls.installed', CONTROL_VERSION, {
+      syntheticOnly: true,
+      sleeveId: SLEEVE_CONTRACT.id,
+      sleeveRevision: SLEEVE_CONTRACT.revision,
+      sleeveSourcePath: SLEEVE_CONTRACT.sourcePath
+    });
     return host.caseBriefHostControls;
   }
 

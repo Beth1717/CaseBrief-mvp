@@ -1,7 +1,12 @@
+const fs=require('node:fs');
 const {chromium}=require('playwright');
 
 (async()=>{
-  const browser=await chromium.launch({headless:true});
+  const installedChromium=chromium.executablePath();
+  const browser=await chromium.launch({
+    headless:true,
+    ...(fs.existsSync(installedChromium)?{executablePath:installedChromium}:{})
+  });
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
