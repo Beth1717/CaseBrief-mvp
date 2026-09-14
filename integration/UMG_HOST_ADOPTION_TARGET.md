@@ -35,6 +35,12 @@ Host-adoption defect probes added on this branch:
 node integration/tests/host-adoption.cjs
 ```
 
+CaseBrief sleeve/adapter contract check:
+
+```bash
+node integration/tests/casebrief-sleeve-contract.cjs
+```
+
 The host-adoption probes are intentionally expected to fail against the frozen baseline until the UMG remediation controls are adopted into the real CaseBrief path.
 
 ## Code path exercised
@@ -47,6 +53,8 @@ The current Record Consistency Review is implemented through the modular host:
 - `core.js` exposes the narrow same-origin `caseBriefHostApi` used by the host controls.
 
 This is the current host path to replace or wrap for the first guarded UMG integration. The safe target is not merely the visual UMG panel: the authorization, source-grounding, expectation-retention and audit decisions need to sit on the state/service boundary used by every path that can surface or change a finding.
+
+The project-authored sleeve is `integration/CASEBRIEF_UMG_SLEEVE_v0.1.json` (`SLV.CASEBRIEF.LEGALANALYSIS.v0.1`, revision 1). `host-controls.js` exposes a compact adapter manifest for that exact sleeve and records its ID, revision, and applied control-block IDs in installation and analysis audit events. This links the inspectable configuration to the synthetic host controls without claiming that the static browser prototype is a live UMG runtime.
 
 ## Synthetic fixture
 
@@ -72,6 +80,8 @@ The four probes are:
 2. **Unsupported assertion rejection:** a finding with an untrusted/nonexistent source must not be accepted merely because its category and citation-looking field are present.
 3. **Wrong-matter denial:** the synthetic actor authorized only for `matter-001` must not be able to switch into/read `matter-002`.
 4. **Missing-record retention:** removing an inventory/finding row must not silently erase the independently expected `BC-1841-A` concern.
+
+These four frozen assertions are the repository's authoritative host-adoption probes. Generic transport operations such as discovery, schema validation, execution, and state retrieval remain future service-adapter concerns; they do not replace or rename these acceptance tests.
 
 The frozen baseline should pass probe 1 and fail probes 2–4. That failure pattern is the evidence needed before adopting the v0.2.1 remediation. After integration, rerun the **same probes unchanged** and capture the new PASS receipt.
 
