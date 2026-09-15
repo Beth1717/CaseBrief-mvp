@@ -1,12 +1,13 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),{webcrypto}=require('node:crypto');
 const elements=new Map();
-const get=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',value:'',hidden:false,className:'',isConnected:true,focus(){},before(){},click(){},reset(){}});return elements.get(id)};
+const get=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',value:'',hidden:false,className:'',isConnected:true,classList:{toggle(){}},focus(){},before(){},click(){},reset(){},appendChild(){}});return elements.get(id)};
 const memory=new Map();
-const context={structuredClone,crypto:webcrypto,console,Blob,URL,setTimeout,clearTimeout,alert(){},navigator:{clipboard:{writeText:async()=>{}}},localStorage:{getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,String(v)),removeItem:k=>memory.delete(k),clear:()=>memory.clear()},document:{getElementById:get,querySelector:s=>s==='[role=dialog] button'?get('dialogButton'):s==='.layout'?get('layout'):null,querySelectorAll:()=>[],createElement:()=>get('created'),addEventListener(){},activeElement:null},window:{addEventListener(){}}};
+const sessionMemory=new Map();
+const context={structuredClone,crypto:webcrypto,console,Blob,URL,setTimeout,clearTimeout,setInterval(){},alert(){},navigator:{clipboard:{writeText:async()=>{}}},localStorage:{getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,String(v)),removeItem:k=>memory.delete(k),clear:()=>memory.clear()},sessionStorage:{getItem:k=>sessionMemory.get(k)||null,setItem:(k,v)=>sessionMemory.set(k,String(v))},document:{body:{classList:{toggle(){}},appendChild(){}},getElementById:get,querySelector:s=>s==='[role=dialog] button'?get('dialogButton'):s==='.layout'?get('layout'):null,querySelectorAll:()=>[],createElement:()=>get('created'),addEventListener(){},activeElement:null},window:{addEventListener(){}}};
 vm.createContext(context);
 const html=fs.readFileSync('index.html','utf8');
 const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
-assert.deepEqual(sources,['seed.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','actions.js']);
+assert.deepEqual(sources,['seed.js','security.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','actions.js','security-runtime.js']);
 for(const src of sources)vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
 const run=s=>vm.runInContext(s,context);
 assert.equal(run('current'),'landing');

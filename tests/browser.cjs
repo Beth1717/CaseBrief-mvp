@@ -1,10 +1,18 @@
+const fs=require('node:fs');
 const {chromium}=require('playwright');
 (async()=>{
- const browser=await chromium.launch({headless:true});
+ const installedChromium=chromium.executablePath();
+ const browser=await chromium.launch({
+  headless:true,
+  ...(fs.existsSync(installedChromium)?{executablePath:installedChromium}:{})
+ });
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.addInitScript(()=>{localStorage.clear();sessionStorage.clear()});
  await page.goto('http://127.0.0.1:8765');
+ // Start from a clean browser state once. An init script would also clear
+ // storage on the later reload that this test uses to verify persistence.
+ await page.evaluate(()=>{localStorage.clear();sessionStorage.clear()});
+ await page.reload();
  await page.getByRole('button',{name:'Open demo workspace'}).click();
  const before=await page.evaluate(()=>score());
  await page.locator('.orb').hover();await page.waitForTimeout(250);
