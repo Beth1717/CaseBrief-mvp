@@ -232,7 +232,7 @@ generateDraft=function(e){
 const _askAIBeforeRichDemo=askAI;
 askAI=function(e){
  const input=document.getElementById('aiPrompt'),q=(input?.value||'').trim();
- const type=detectDraftType(q);if(!type)return _askAIBeforeRichDemo(e);
+ const type=detectDraftType(q),wantsDraft=/(draft|write|prepare|generate|create)/i.test(q);if(!type||!wantsDraft)return _askAIBeforeRichDemo(e);
  e.preventDefault();
  if(!q||!requirePermission('ai_use','ai:question')||!requirePermission('drafting','draft:generate-from-ai'))return;
  data.assistantMessages.push({role:'user',at:new Date().toISOString(),text:q});
