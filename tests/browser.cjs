@@ -36,10 +36,16 @@ const {chromium}=require('playwright');
 
  // Core workflows as attorney.
  await page.getByRole('button',{name:'AI Assistant',exact:true}).click();
+ await page.locator('#aiPrompt').fill('Give me a narrative overview of this case.');
+ await page.getByRole('button',{name:'Ask CaseBrief AI',exact:true}).last().click();
+ await page.getByText(/does not tell one completely consistent story/).waitFor();
  await page.locator('#aiPrompt').fill('What needs attention next?');
  await page.getByRole('button',{name:'Ask CaseBrief AI',exact:true}).last().click();
  await page.getByText(/Immediate attention should go to/).waitFor();
  await page.getByRole('button',{name:'Drafting Studio',exact:true}).click();
+ await page.selectOption('#draftType','motion_to_suppress');
+ await page.getByRole('button',{name:'Generate formatted draft',exact:true}).click();
+ await page.getByRole('heading',{name:'Motion to Suppress Evidence — Draft'}).waitFor();
  await page.selectOption('#draftType','discovery_followup');
  await page.getByRole('button',{name:'Generate formatted draft',exact:true}).click();
  await page.getByRole('heading',{name:'Discovery Follow-Up — Draft'}).waitFor();

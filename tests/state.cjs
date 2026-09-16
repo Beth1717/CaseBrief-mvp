@@ -8,7 +8,7 @@ const context={structuredClone,crypto:webcrypto,console,Blob,URL,setTimeout,clea
 vm.createContext(context);
 const html=fs.readFileSync('index.html','utf8');
 const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]);
-assert.deepEqual(sources,['seed.js','security.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','actions.js','security-runtime.js']);
+assert.deepEqual(sources,['seed.js','security.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','actions.js','security-runtime.js','demo-capabilities.js']);
 for(const src of sources)vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
 const run=s=>vm.runInContext(s,context);
 assert.equal(run('current'),'landing');
@@ -21,6 +21,9 @@ assert.ok(run('authorities()').includes('Brady v. Maryland'));
 assert.ok(run('communications()').includes('Client & team communications'));
 assert.ok(run('drafting()').includes('Drafting Studio'));
 assert.ok(run("simulateAI('What needs attention next?').text").includes('Immediate attention'));
+const narrativeText=String(run("simulateAI('Give me a narrative overview of this case.').text"));assert.ok(narrativeText.length>1000);assert.match(narrativeText,/According to Incident Report 26-1841/);
+assert.ok(run('drafting()').includes('Motion to Suppress — full draft'));
+get('draftType').value='motion_to_suppress';get('draftInstruction').value='Preserve neutral language.';run("generateDraft({preventDefault(){}})");assert.equal(run("data.drafts.at(-1).type"),'motion_to_suppress');assert.ok(run("data.drafts.at(-1).body").includes('DEFENDANT’S MOTION TO SUPPRESS EVIDENCE'));assert.ok(run("data.drafts.at(-1).body").includes('ATTORNEY COMPLETION CHECKLIST'));
 run("beginIssueDecision('rights-1','reviewed')");get('decisionReason').value=' ';run("saveIssueDecision({preventDefault(){}},'rights-1','reviewed')");assert.equal(run("data.issues.find(x=>x.id==='rights-1').status"),'open');
 get('decisionReason').value='Compared doc-1 and doc-8; unresolved.';run("saveIssueDecision({preventDefault(){}},'rights-1','reviewed')");assert.equal(run('score()'),26);
 run("beginIssueDecision('rights-1','dismissed')");get('decisionReason').value='<script>unsafe</script>';run("saveIssueDecision({preventDefault(){}},'rights-1','dismissed')");assert.equal(run('score()'),34);assert.ok(run('activityHistory()').includes('&lt;script&gt;unsafe&lt;/script&gt;'));assert.ok(run('activityHistory()').includes('Review status changed'));assert.ok(!run('activityHistory()').includes('<td><pre>'));
