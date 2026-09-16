@@ -88,12 +88,18 @@
   }
 
   function installCaseBriefHostControls(host) {
-    if (!host || host.__caseBriefHostControlsInstalled) return host && host.caseBriefHostControls;
+    if (!host) return;
     const state = host.caseBriefHostApi;
     if (!state || !state.data || !state.workspace || !state.actor) {
       throw new Error('CaseBrief host API unavailable');
     }
-    host.__caseBriefHostControlsInstalled = true;
+    // Install once per CaseBrief application instance. The iframe can reload
+    // while its Window proxy survives, so a simple boolean may incorrectly
+    // suppress installation against a newly-created host API.
+    if (host.__caseBriefHostControlsInstalledFor === state) {
+      return host.caseBriefHostControls;
+    }
+    host.__caseBriefHostControlsInstalledFor = state;
 
     const audit = (action, target, details, outcome = 'success') => {
       if (typeof host.record === 'function') host.record(action, target, details || {}, outcome);
