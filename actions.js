@@ -9,6 +9,6 @@ function markAuthorityVerified(id){const a=data.authorities.find(x=>x.id===id);i
 
 function render(){const map={landing,dashboard,review,timeline,evidence,witnesses,documents,authorities,assistant,drafting,communications,umg,audit:activityHistory,safeguards,survey};const fn=map[current]||dashboard;document.getElementById('app').innerHTML=fn();updateStorageNotice()}
 document.addEventListener('keydown',e=>{const dialog=document.querySelector('[role=dialog]');if(dialog&&e.key==='Escape'){e.preventDefault();closeDetail()}else if(!dialog&&['Enter',' '].includes(e.key)&&e.target.matches('.clickable[tabindex]')){e.preventDefault();e.target.click()}})
-document.addEventListener('click',e=>{const b=e.target.closest('button');if(b)record('control.activated',b.id||b.textContent.trim().slice(0,100))},true)
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(b)record('control.activated',b.getAttribute('aria-label')||b.id||b.textContent.trim().slice(0,100))},true)
 window.addEventListener('storage',e=>{if(e.key===STORE){storageOK=false;updateStorageNotice();document.getElementById('storageNotice').textContent='This workspace changed in another tab. Reload before making further changes to avoid overwriting it.'}})
 syncPicker();record('session.started',data.matter.id,{mode:'synthetic demo v3'});nav();render();
