@@ -7,7 +7,7 @@ const sessionMemory=new Map();
 const context={structuredClone,crypto:webcrypto,console,Blob,URL,setTimeout,clearTimeout,setInterval(){return 1},clearInterval(){},alert(){},navigator:{clipboard:{writeText:async()=>{}}},localStorage:{getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,String(v)),removeItem:k=>memory.delete(k),clear:()=>memory.clear()},sessionStorage:{getItem:k=>sessionMemory.get(k)||null,setItem:(k,v)=>sessionMemory.set(k,String(v)),removeItem:k=>sessionMemory.delete(k),clear:()=>sessionMemory.clear()},document:{body:{classList,appendChild(){}},getElementById:get,querySelector:s=>s==='[role=dialog] button'?get('dialogButton'):s==='.layout'?get('layout'):null,querySelectorAll:()=>[],createElement:()=>get('created'),addEventListener(){},activeElement:null},window:{addEventListener(){}}};
 vm.createContext(context);
 const html=fs.readFileSync('index.html','utf8');
-const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
+const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]);
 assert.deepEqual(sources,['seed.js','security.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','actions.js','security-runtime.js']);
 for(const src of sources)vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
 const run=s=>vm.runInContext(s,context);
