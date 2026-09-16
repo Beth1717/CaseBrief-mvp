@@ -1,6 +1,9 @@
+const fs=require('node:fs');
 const {chromium}=require('playwright');
 (async()=>{
- const browser=await chromium.launch({headless:true});
+ const configuredPath=process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
+ const systemPath=['/usr/bin/chromium','/usr/bin/chromium-browser','/usr/bin/google-chrome'].find(fs.existsSync);
+ const browser=await chromium.launch({headless:true,...(configuredPath||systemPath?{executablePath:configuredPath||systemPath}:{})});
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{localStorage.clear();sessionStorage.clear()});
@@ -24,7 +27,11 @@ const {chromium}=require('playwright');
  if(await page.evaluate(()=>score())!==before+8)throw Error('Dismiss did not update CRI');
  const scriptsBefore=await page.locator('script').count();
  await page.getByRole('button',{name:'Activity History',exact:true}).click();
- await page.getByText('issue.status_changed',{exact:true}).first().waitFor();
+ await page.getByText('Review status changed',{exact:true}).first().waitFor();
+ await page.getByText('Previous value',{exact:true}).first().waitFor();
+ if(await page.locator('td > pre').count())throw Error('Activity history still exposes raw JSON by default');
+ await page.getByText('View technical details',{exact:true}).first().click();
+ await page.locator('.audit-technical[open] pre').first().waitFor();
  if(await page.locator('script').count()!==scriptsBefore)throw Error('Unsafe activity rendering created executable markup');
 
  // Core workflows as attorney.
