@@ -54,7 +54,7 @@ const {chromium}=require('playwright');
  await page.getByRole('button',{name:'Edit document',exact:true}).click();
  await page.locator('#draftEditor').fill('Attorney revised filing text <script>plain text only</script>');
  await page.getByRole('button',{name:'Save new version',exact:true}).click();
- await page.getByText('Attorney revised filing text <script>plain text only</script>',{exact:true}).waitFor();
+ await page.locator('p').getByText('Attorney revised filing text <script>plain text only</script>',{exact:true}).waitFor();
  if(await page.locator('script').count()!==scriptsBefore)throw Error('Draft edit executed unsafe markup');
  await page.getByRole('button',{name:'Close',exact:true}).click();
  await page.selectOption('#draftType','discovery_followup');

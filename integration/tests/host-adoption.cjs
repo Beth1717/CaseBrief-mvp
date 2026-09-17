@@ -33,7 +33,7 @@ function boot(){
   };
   vm.createContext(context);
   const html=fs.readFileSync('index.html','utf8');
-  const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(match=>match[1]);
+  const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(match=>match[1].split("?")[0]);
   for(const src of ['seed.js','security.js','core.js','views-system.js']){
     if(!sources.includes(src))throw new Error('required host script missing: '+src);
     vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
