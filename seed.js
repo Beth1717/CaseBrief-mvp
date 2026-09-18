@@ -21,7 +21,7 @@ const primarySeed={
   {id:'ev-1',name:'Black backpack',status:'in inventory',related:['doc-1','doc-3']},
   {id:'ev-2',name:'Sealed packet',status:'in inventory',related:['doc-3']},
   {id:'ev-3',name:'Phone',status:'in inventory',related:['doc-3']},
-  {id:'ev-4',name:'Body-camera BC-1841-A',status:'referenced but missing',related:['doc-1','doc-8']}
+  {id:'ev-4',recordId:'BC-1841-A',name:'Body-camera BC-1841-A',status:'referenced but missing',related:['doc-1','doc-8']}
  ],
  witnesses:[
   {id:'wit-1',name:'Mara Wells',role:'Civilian witness',statement:'Stop began about 21:55; backpack was on curb when she arrived.',flags:['Time conflicts with incident report','Backpack location conflicts with incident report']},
