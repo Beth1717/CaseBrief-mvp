@@ -45,6 +45,7 @@ const elements = new Map();
 const host = {
   caseBriefHostApi: {
     actor: {id: 'demo-reviewer'},
+    authorizeMatter(actor, id) {return actor.id === 'demo-reviewer' && id === 'matter-001';},
     data: {matter: {id: 'matter-001'}, documents: [], evidence: [], issues: []},
     workspace: {cases: {'matter-001': {matter: {id: 'matter-001', title: 'Synthetic'}}}}
   },

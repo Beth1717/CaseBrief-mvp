@@ -10,22 +10,15 @@ html,body{height:100%;margin:0;background:#100e16;color:#f5f2fb;font-family:Inte
 </head>
 <body>
 <div class="status"><b>CaseBrief × UMG v0.2.1 host-adoption candidate</b><span id="state" class="pill warn">installing guarded host controls…</span><span class="pill">synthetic data only</span></div>
-<iframe id="casebrief" src="../index.html" title="CaseBrief guarded host-adoption demo"></iframe>
+<iframe id="casebrief" name="casebrief-guarded" src="../index.html" title="CaseBrief guarded host-adoption demo"></iframe>
 <script>
 const frame=document.getElementById('casebrief');
 const state=document.getElementById('state');
 frame.addEventListener('load',()=>{
   try{
-    const doc=frame.contentDocument;
-    const script=doc.createElement('script');
-    script.src='integration/host-controls.js';
-    script.onload=()=>{
-      frame.contentWindow.installCaseBriefHostControls(frame.contentWindow);
-      state.textContent='guarded host controls active';
-      state.className='pill ok';
-    };
-    script.onerror=()=>{state.textContent='control load failed';state.className='pill warn'};
-    doc.body.appendChild(script);
+    if(!frame.contentWindow.caseBriefHostControls||!frame.contentWindow.applicationAllowed())throw new Error('startup authorization/control installation failed');
+    state.textContent='guarded host controls active';
+    state.className='pill ok';
   }catch(err){state.textContent='integration blocked: '+err.message;state.className='pill warn'}
 });
 </script>
