@@ -1,4 +1,4 @@
-# UMG remediation and review fixes (uncommitted)
+# UMG remediation and review fixes
 
 ## Authorization and startup
 
