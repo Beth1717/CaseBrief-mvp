@@ -13,7 +13,14 @@ for(const src of sources)vm.runInContext(fs.readFileSync(src,'utf8'),context,{fi
 const run=s=>vm.runInContext(s,context);
 assert.equal(run('current'),'landing');
 assert.equal(run('score()'),26);
-assert.ok(run('dashboard()').includes('Factors reducing CRI'));
+assert.ok(run('dashboard()').includes('What CRI means'));
+assert.ok(!run('dashboard()').includes('Factors reducing CRI'));
+assert.ok(run('dashboard()').includes('Click for factors + deductions'));
+assert.ok(run('pilotAccess()').includes('Paid Founding Pilot'));
+assert.ok(run('pilotAccess()').includes('no “free trial” language'));
+assert.ok(run('caseIngestion()').includes('Source provenance ledger'));
+assert.ok(run('accessTrust()').includes('Identity → organization → matter authorization'));
+assert.equal(run("canAccessMatter('matter-002')"),true);
 assert.ok(run('dashboard()').includes('Ask AI'));
 assert.ok(run('dashboard()').includes('Law & authority'));
 assert.ok(run('dashboard()').includes('Where this case is now'));
@@ -35,7 +42,8 @@ run("beginIssueDecision('rights-1','reviewed')");get('decisionReason').value=' '
 get('decisionReason').value='Compared doc-1 and doc-8; unresolved.';run("saveIssueDecision({preventDefault(){}},'rights-1','reviewed')");assert.equal(run('score()'),26);
 run("beginIssueDecision('rights-1','dismissed')");get('decisionReason').value='<script>unsafe</script>';run("saveIssueDecision({preventDefault(){}},'rights-1','dismissed')");assert.equal(run('score()'),34);assert.ok(run('activityHistory()').includes('&lt;script&gt;unsafe&lt;/script&gt;'));assert.ok(run('activityHistory()').includes('Review status changed'));assert.ok(!run('activityHistory()').includes('<td><pre>'));
 assert.equal(run("workspace.events.filter(e=>e.action==='issue.status_changed').length"),2);
-run("switchCase('matter-002')");assert.ok(run('dashboard()').includes('CRI pending'));assert.equal(run('data.documents.length'),0);run("switchCase('matter-001')");assert.equal(run('score()'),34);
+run("switchCase('matter-002')");assert.ok(run('dashboard()').includes('CRI pending'));assert.ok(run('dashboard()').includes('Open Case Ingestion'));assert.equal(run('data.documents.length'),0);run("switchCase('matter-001')");assert.equal(run('score()'),34);
+run("switchSecurityProfile('client')");assert.equal(run("canAccessMatter('matter-002')"),false);const beforeDeniedIngestion=run('current');run("showView('ingestion')");assert.equal(run('current'),beforeDeniedIngestion);run("switchSecurityProfile('attorney')");
 for(const view of ['landing','dashboard','review','timeline','evidence','witnesses','documents','authorities','assistant','drafting','communications','umg','audit','safeguards','survey'])run(`showView('${view}')`);
 run("showView('umg');runConsistency()");assert.ok(run("workspace.events.some(e=>e.action==='analysis.completed'&&e.actor.type==='system')"));
 assert.equal(JSON.parse(memory.get('casebrief_workspace_v3')).cases['matter-001'].issues.find(x=>x.id==='rights-1').status,'dismissed');
