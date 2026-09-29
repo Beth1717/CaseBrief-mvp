@@ -1,0 +1,44 @@
+name: Validate CaseBrief MVP
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "umg-host-adoption-v0.2.1"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  state:
+    name: State regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run state suite
+        run: node tests/state.cjs
+
+  browser:
+    name: Browser regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Run browser suite
+        run: |
+          python3 -m http.server 8765 > /tmp/casebrief-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          export PLAYWRIGHT_CHROMIUM_EXECUTABLE="$(node -e "const { chromium }=require('playwright'); process.stdout.write(chromium.executablePath())")"
+          node tests/browser.cjs
