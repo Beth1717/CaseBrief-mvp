@@ -34,8 +34,8 @@ These protections improve the MVP and make least-privilege behaviour demonstrabl
 ### Case overview and CRI
 
 - Case Readiness Index (CRI) rendered as a segmented precision ring.
-- Hover/focus places a **translucent circular layer directly over the CRI ring**. The layer shows factor **categories** and the combined percentage each category is reducing the current CRI.
-- Clicking the CRI opens deeper factor detail with category totals, individual review items, source IDs, and current scoring effects.
+- Hover/focus places a **translucent circular layer directly over the CRI ring**. The layer explains **what the Case Readiness Index means** and explicitly avoids showing factor categories or deductions.
+- Clicking the CRI is the detailed view: category totals, deductions, individual review items, source IDs, and current scoring effects.
 - Reviewed findings continue to reduce CRI until resolved or dismissed. Review decisions require a nonblank reason and record before/after state and CRI values.
 - CRI remains a workload/readiness indicator only; it does not predict guilt, innocence, merit, or case outcome.
 
@@ -111,3 +111,14 @@ CRI weights are illustrative and unvalidated. Dates belong to a historical synth
 ## Verification status
 
 The prior v3 interaction/state regressions passed before this security-hardening pass. The September 13 security pass changed navigation, role enforcement, AI source filtering, document visibility, communications, clipboard/export flow, and session/privacy controls; these changes should be included in the next automated browser regression before presenting the MVP as technically validated. The repo deliberately does not claim that client-side demo controls are production security.
+
+
+### Founding Pilot, Access & Trust, and Case Ingestion
+
+- Added a paid, approval-only **Founding Pilot** product flow. The prototype deliberately does not collect real applicant or client data.
+- Added an **Access & Trust** view separating identity verification, organization membership, matter authorization, and permissions.
+- Demo identities now include matter assignments; the case picker is filtered by matter authorization.
+- Added a **Case Ingestion** workspace with synthetic court, firm-file, and human-entered source classes.
+- Synthetic imports demonstrate quarantine, SHA-256 integrity metadata, duplicate detection, source-linked assertions, human verification, court-refresh deltas, and audit events.
+- Real court/provider access remains a production integration task and must use approved interfaces/terms.
+- See `CASE-INGESTION-ACCESS-TRUST.md` for the production architecture and release gates.

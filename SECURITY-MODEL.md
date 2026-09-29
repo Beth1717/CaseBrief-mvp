@@ -108,3 +108,22 @@ No real client, discovery, privileged, medical, criminal-history, payment, authe
 CaseBrief should make security visible without turning the interface into a warning screen. Users should be able to understand who can see a matter, why they have access, what AI used, what left the system, what changed, and who approved it.
 
 The security promise is not “AI is safe because we say so.” The promise is that access is constrained, consequential actions are controlled, provenance is inspectable, sensitive content is minimized, and important activity is traceable.
+
+
+## Founding Pilot access boundary
+
+The production pilot is paid and approval-only. A public request does not create a case-data account. Professional/organization verification, explicit approval, agreement/payment completion, a single-use expiring invitation, MFA/passkey enrollment, organization membership, and matter authorization are distinct steps.
+
+The public marketing application must never accept client facts, case files, discovery, or confidential matter information.
+
+## Matter-scoped authorization
+
+Organization membership is not sufficient to access every matter. Production authorization must evaluate the authenticated identity, organization tenant, matter assignment, requested permission, and resource classification on the server for every protected operation.
+
+The MVP now demonstrates matter assignments in its synthetic role model. These browser-side controls are illustrative only.
+
+## Ingestion trust boundary
+
+Production files enter quarantine before use. Required controls include file/type validation, malware scanning, cryptographic integrity hashing, duplicate detection, immutable-original storage, classification, source-linked extraction, human-verification state, and auditable promotion into the case-intelligence layer.
+
+See `CASE-INGESTION-ACCESS-TRUST.md`.
