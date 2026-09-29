@@ -8,7 +8,7 @@ const {chromium}=require('playwright');
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{localStorage.clear();sessionStorage.clear()});
  await page.goto('http://127.0.0.1:8765');
- await page.getByRole('button',{name:'Open demo workspace'}).click();
+ await page.getByRole('button',{name:'Open synthetic demo'}).click();
  const before=await page.evaluate(()=>score());
  await page.locator('.orb').hover();await page.waitForTimeout(250);
  const hoverOpacity=await page.locator('.crihover').evaluate(el=>getComputedStyle(el).opacity);
