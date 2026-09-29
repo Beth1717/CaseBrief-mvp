@@ -1,14 +1,15 @@
 const SECURITY_PROFILES={
- attorney:{id:'attorney-demo',name:'Avery Chen',role:'Lead attorney',permissions:['case_view','privileged_work_product','ai_use','drafting','authority_research','communications_client','communications_team','review_decisions','audit_view','export','security_admin']},
- cocounsel:{id:'cocounsel-demo',name:'Priya Shah',role:'Co-counsel',permissions:['case_view','privileged_work_product','ai_use','drafting','authority_research','communications_client','communications_team','review_decisions','audit_view','export']},
- investigator:{id:'investigator-demo',name:'Luis Reyes',role:'Investigator',permissions:['case_view','ai_use','communications_team','audit_view']},
- client:{id:'client-demo',name:'Jordan Hale',role:'Client',permissions:['case_view','communications_client']}
+ attorney:{id:'attorney-demo',name:'Avery Chen',role:'Lead attorney',verification:'synthetic professional verified',matterIds:['matter-001','matter-002'],permissions:['case_view','ingestion_manage','privileged_work_product','ai_use','drafting','authority_research','communications_client','communications_team','review_decisions','audit_view','export','security_admin']},
+ cocounsel:{id:'cocounsel-demo',name:'Priya Shah',role:'Co-counsel',verification:'synthetic professional verified',matterIds:['matter-001'],permissions:['case_view','ingestion_manage','privileged_work_product','ai_use','drafting','authority_research','communications_client','communications_team','review_decisions','audit_view','export']},
+ investigator:{id:'investigator-demo',name:'Luis Reyes',role:'Investigator',verification:'synthetic organization member',matterIds:['matter-001'],permissions:['case_view','ai_use','communications_team','audit_view']},
+ client:{id:'client-demo',name:'Jordan Hale',role:'Client',verification:'synthetic invited external user',matterIds:['matter-001'],permissions:['case_view','communications_client']}
 };
 let activeSecurityProfile=sessionStorage.getItem('casebrief_demo_role')||'attorney';
 let privacyMode=false,sessionLocked=false,lastActivityAt=Date.now();
 const SESSION_IDLE_MS=15*60*1000;
-function currentIdentity(){const p=SECURITY_PROFILES[activeSecurityProfile]||SECURITY_PROFILES.attorney;return {id:p.id,name:p.name,type:'human',role:p.role,verified:false}}
+function currentIdentity(){const p=SECURITY_PROFILES[activeSecurityProfile]||SECURITY_PROFILES.attorney;return {id:p.id,name:p.name,type:'human',role:p.role,verified:Boolean(p.verification),verification:p.verification||'demo only'}}
 function currentProfile(){return SECURITY_PROFILES[activeSecurityProfile]||SECURITY_PROFILES.attorney}
+function canAccessMatter(id){const p=currentProfile();return can('case_view')&&Array.isArray(p.matterIds)&&p.matterIds.includes(id)}
 function can(permission){return currentProfile().permissions.includes(permission)}
 function documentClassification(d){if(!d)return 'restricted';if(d.type==='Attorney note')return 'privileged';if(['Witness statement','Police report','Evidence log','Transcript','Correspondence'].includes(d.type))return 'confidential';return 'case-record'}
 function canAccessDocument(d){const cls=documentClassification(d);if(cls==='privileged'&&!can('privileged_work_product'))return false;return can('case_view')}
