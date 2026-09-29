@@ -13,7 +13,9 @@ const {chromium}=require('playwright');
  await page.locator('.orb').hover();await page.waitForTimeout(250);
  const hoverOpacity=await page.locator('.crihover').evaluate(el=>getComputedStyle(el).opacity);
  if(hoverOpacity!=='1')throw Error('CRI circular hover overlay did not reveal');
- await page.getByText('potential rights violation',{exact:true}).waitFor();
+ const hoverText=await page.locator('.crihover').innerText();
+ if(!hoverText.includes('What CRI means')||!hoverText.includes('Readiness reflects how complete and review-ready'))throw Error('CRI hover does not explain the index');
+ if(hoverText.includes('Factors reducing CRI')||/−\\d+%/.test(hoverText))throw Error('CRI hover leaked factor deductions');
  await page.locator('.orb').click();await page.getByRole('heading',{name:'Case Readiness Index (CRI)'}).waitFor();await page.keyboard.press('Escape');
  await page.evaluate(()=>openDetail('issue','rights-1'));
  await page.getByRole('button',{name:'Mark reviewed',exact:true}).click();
@@ -33,6 +35,15 @@ const {chromium}=require('playwright');
  await page.getByText('View technical details',{exact:true}).first().click();
  await page.locator('.audit-technical[open] pre').first().waitFor();
  if(await page.locator('script').count()!==scriptsBefore)throw Error('Unsafe activity rendering created executable markup');
+
+ // Founding Pilot / Access & Trust / Case Ingestion surfaces.
+ await page.getByRole('button',{name:'Founding Pilot',exact:true}).click();
+ await page.getByRole('heading',{name:'Approval-only access before general release'}).waitFor();
+ await page.getByRole('button',{name:'Access & Trust',exact:true}).click();
+ await page.getByRole('heading',{name:'Identity → organization → matter authorization'}).waitFor();
+ await page.getByRole('button',{name:'Case Ingestion',exact:true}).click();
+ await page.getByRole('heading',{name:'Build the case from traceable sources'}).waitFor();
+ await page.getByText('Source provenance ledger',{exact:true}).waitFor();
 
  // Core workflows as attorney.
  await page.getByRole('button',{name:'AI Assistant',exact:true}).click();
