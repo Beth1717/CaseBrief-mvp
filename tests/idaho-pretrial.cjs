@@ -1,0 +1,57 @@
+const assert = require('node:assert/strict');
+const fixture = require('../integration/fixtures/idaho-pretrial.json');
+const boot = require('./helpers/application.cjs');
+const {run,get,stored} = boot(structuredClone(fixture.appState));
+assert.equal(run('data.matter.id'), 'SYN-ID-PRETRIAL-001');
+assert.equal(run('data.documents.length'), 6);
+assert.equal(run('data.issues.length'), 0, 'answer key must not become detected issues');
+assert.equal(run('data.authorities.length'), 0, 'no inherited authorities');
+assert.equal(run('data.matter.nextDeadline'), null);
+assert.equal(run('data.matter.filingProfile'), undefined);
+assert.equal(run('score()'),null);
+assert.match(run('dashboard()'), /CRI pending — Insufficient data/);
+assert.doesNotMatch(run('dashboard()'), /Aug 26|100%|Motions due/);
+assert.equal(run(`weightedReadiness(${JSON.stringify(fixture.criArithmetic.components)})`),63);
+for(const invalid of [null,[],[80,60],['80',60,40],[101,60,40],[-1,60,40]])assert.equal(run(`weightedReadiness(${JSON.stringify(invalid)})`),null);
+assert.equal(run('weightedReadiness([NaN,60,40])'),null);
+for (const source of fixture.appState.documents) {
+  assert.equal(source.syntheticOnly, true);
+  assert.match(source.title, /SYNTHETIC/);
+  assert.ok(run('documents()').includes(source.id));
+}
+assert.equal(run("data.documents.find(d=>d.id==='S04').excerpt"), run("data.documents.find(d=>d.id==='S05').excerpt"));
+assert.match(run('timeline()'), /clock accuracy unverified/);
+run("openDetail('document','S02')");
+assert.match(get('detailRoot').innerHTML, /21:09:30/);
+const preview=run("simulateAI('Give me the full case narrative and draft a motion to suppress')");
+assert.equal(JSON.stringify(preview.sources), JSON.stringify(['S01','S02','S03','S04','S05','S06']));
+assert.match(preview.text, /not an analysis or a court draft/);
+assert.doesNotMatch(preview.text, /Jordan Hale|BC-1841-A|Mara Wells|August 26|Franklin County/);
+// Permission is enforced before generating text, not just on returned citations.
+run("activeSecurityProfile='investigator'");
+const investigator=run("simulateAI('Full narrative')");
+assert.ok(!investigator.sources.includes('S06'));
+assert.doesNotMatch(investigator.text, /Internal strategy note/);
+assert.ok(!run('documents()').includes('Restricted attorney work note'));
+run("openDetail('document','S06')");
+assert.ok(run("workspace.events.some(e=>e.action==='security.access_denied'&&e.target==='document:S06')"));
+run("activeSecurityProfile='client'");
+assert.equal(run("simulateAI('Full narrative').sources.length"),0);
+assert.equal(run("can('review_decisions')"),false);
+assert.equal(run("can('export')"),false);
+run("activeSecurityProfile='attorney'");
+get('draftType').value='motion_to_suppress';
+run('generateDraft({preventDefault(){}})');
+assert.equal(run('data.drafts.length'),0);
+assert.ok(run("workspace.events.some(e=>e.action==='draft.blocked'&&e.outcome==='denied')"));
+assert.equal(run("filingReadiness('motion_to_suppress').ready"),false);
+assert.throws(()=>run("createCatalogDraft('motion_to_suppress')"), /not validated/);
+get('aiPrompt').value='Draft a motion to suppress';
+run('askAI({preventDefault(){}})');
+assert.equal(run('data.drafts.length'),0);
+assert.doesNotMatch(run('data.assistantMessages.at(-1).text'), /Jordan Hale|BC-1841-A/);
+assert.equal(JSON.parse(stored()).cases['SYN-ID-PRETRIAL-001'].documents.length,6);
+// The original host authorization boundary stays closed to this new matter.
+assert.equal(run("authorizeMatter(actor,'SYN-ID-PRETRIAL-001')"),false);
+console.log('PASS Idaho fixture: real v3 schema, record/detail rendering, isolated evaluator key, source-derived preview, pre-generation role filtering, blocked unvalidated drafting, audit and persistence.');
+console.log('NOT IMPLEMENTED: pilot host grant/catalogue, automated findings, item-level three-component CRI, released-source sharing/expiry/revocation. No legal/model accuracy or browser result claimed.');

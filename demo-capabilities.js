@@ -135,6 +135,7 @@ function catalogDraftText(type,instruction=''){
 }
 
 function createCatalogDraft(type,instruction='',origin='Drafting Studio'){
+ if(data.matter.id==='SYN-ID-PRETRIAL-001')throw new Error('Idaho pilot court templates are not validated');
  if(type==='motion_to_suppress')return createMotionToSuppressDraft(instruction,origin);
  const title=`${LEGAL_DRAFT_CATALOG[type]} — Draft`,body=catalogDraftText(type,instruction);
  const readiness=filingReadiness(type);
@@ -147,6 +148,7 @@ function detectDraftType(q){const t=String(q||'').toLowerCase();const rules=[['m
 const COURT_FILINGS=new Set(['motion_to_suppress','motion_to_compel','evidentiary_hearing_request','notice_of_appeal','proposed_order','certificate_of_service']);
 function filingProfile(){return data.matter.filingProfile||(data.matter.id==='matter-001'?primarySeed.matter.filingProfile:{})}
 function filingReadiness(type){
+ if(data.matter.id==='SYN-ID-PRETRIAL-001')return {ready:false,missing:['attorney-validated Idaho court profile and templates'],profile:{}};
  const p=filingProfile(),c=p.defenseCounsel||{},r=p.rules||{},missing=[];
  [['court name',p.courtName],['county',p.county],['division',p.division],['judge',p.judge],['case number',data.matter.number],['defendant',data.matter.client],['defense counsel',c.name],['bar number',c.barNumber],['counsel address',c.address],['counsel phone',c.phone],['counsel email',c.email],['prosecutor',p.prosecutorName],['prosecutor service address',p.prosecutorServiceEmail],['service rule',r.service]].forEach(([label,value])=>{if(!value)missing.push(label)});
  if(type==='motion_to_suppress'&&!r.suppression)missing.push('suppression rule');
@@ -213,6 +215,15 @@ drafting=function(){const options=[`<option value="motion_to_suppress">Motion to
 
 const _simulateAIBeforeRichDemo=simulateAI;
 simulateAI=function(q){
+ // This pilot has different source IDs and no validated court templates.
+ // Build the preview from permitted records before generating text, rather
+ // than filtering citations after a Jordan Hale-specific answer is written.
+ if(data.matter.id==='SYN-ID-PRETRIAL-001'){
+  if(!can('ai_use'))return {text:'Your role cannot use the AI assistant.',sources:[]};
+  const records=data.documents.filter(canAccessDocument);
+  if(!records.length)return {text:'No permitted source records are available.',sources:[]};
+  return {text:'Synthetic Idaho pretrial source preview. This is a deterministic record preview, not an analysis or a court draft. Camera clock synchronisation is unverified; ownership, substance identity and search legality are not determined.\n\n'+records.map(d=>`${d.id} — ${d.title}\n${d.excerpt}`).join('\n\n'),sources:records.map(d=>d.id)};
+ }
  const t=String(q||'').toLowerCase();
  if(/(narrative|overview|tell me (the|about the) case|case story|full case summary)/.test(t))return narrativeCaseOverview();
  if(detectDraftType(t))return {text:`I can generate a ${detectDraftType(t).replaceAll('_',' ')} draft from this synthetic record and save it in Drafting Studio. The document will identify unresolved facts and jurisdiction-specific authorities or procedures that counsel must verify before use.`,sources:['doc-1','doc-2','doc-3','doc-4','doc-5','doc-6','doc-7','doc-8']};
@@ -221,6 +232,12 @@ simulateAI=function(q){
 
 const _generateDraftBeforeRichDemo=generateDraft;
 generateDraft=function(e){
+ if(data.matter.id==='SYN-ID-PRETRIAL-001'){
+  e.preventDefault();
+  record('draft.blocked',data.matter.id,{reason:'pilot_court_templates_not_validated'},'denied');
+  showSecurityNotice('Idaho pilot court templates require attorney validation before drafting.');
+  return;
+ }
  const type=document.getElementById('draftType')?.value;
  if(type!=='motion_to_suppress'&&!LEGAL_DRAFT_CATALOG[type])return _generateDraftBeforeRichDemo(e);
  e.preventDefault();
@@ -231,6 +248,7 @@ generateDraft=function(e){
 
 const _askAIBeforeRichDemo=askAI;
 askAI=function(e){
+ if(data.matter.id==='SYN-ID-PRETRIAL-001')return _askAIBeforeRichDemo(e);
  const input=document.getElementById('aiPrompt'),q=(input?.value||'').trim();
  const type=detectDraftType(q),wantsDraft=/(draft|write|prepare|generate|create)/i.test(q);if(!type||!wantsDraft)return _askAIBeforeRichDemo(e);
  e.preventDefault();
