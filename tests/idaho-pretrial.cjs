@@ -16,7 +16,7 @@ assert.equal(run('score()'),63);
 assert.equal(run('pilotCRI().components.completeness.value'),80);
 assert.equal(run('pilotCRI().components.workControl.value'),60);
 assert.equal(run('pilotCRI().components.attentionControl.value'),40);
-assert.equal(run('pilotCRI().ruleset'),'casebrief.cri.idaho-pretrial.v0.1');
+assert.equal(run('pilotCRI().ruleset'),'casebrief.cri.idaho-pretrial.v0.2');
 assert.match(run('dashboard()'), /Case Readiness Index: 63%/);
 assert.doesNotMatch(run('dashboard()'), /Aug 26|100%|Motions due/);
 assert.equal(run(`weightedReadiness(${JSON.stringify(fixture.criArithmetic.components)})`),63);

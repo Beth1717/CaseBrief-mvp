@@ -1,0 +1,61 @@
+const assert=require('node:assert/strict');
+const {chromium}=require('playwright');
+const fixture=require('../integration/fixtures/idaho-pretrial.json');
+(async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('http://127.0.0.1:8765');
+  await page.evaluate(state=>{
+   localStorage.clear();sessionStorage.clear();localStorage.setItem('casebrief_workspace_v3',JSON.stringify({version:3,active:state.matter.id,cases:{[state.matter.id]:state},events:[]}));
+  },fixture.appState);
+  await page.reload();await page.getByRole('button',{name:'Open demo workspace'}).click();
+  const ring=page.getByRole('button',{name:'Open CRI calculation details'});
+  await page.keyboard.press('Tab');
+  await ring.focus();
+  assert.equal(await ring.locator('.orbscore').evaluate(el=>getComputedStyle(el).opacity),'1');
+  await page.waitForFunction(()=>getComputedStyle(document.getElementById('pilotCRIExplanation')).opacity==='1');
+  assert.match(await page.locator('#pilotCRIExplanation').innerText(),/does not predict a legal outcome/);
+  assert.doesNotMatch(await page.locator('#pilotCRIExplanation').innerText(),/deduction|Factors reducing/);
+  await ring.press('Enter');
+  const dialog=page.getByRole('dialog');
+  assert.match(await dialog.innerText(),/Unrounded total 63.00 → 63%/);
+  assert.match(await dialog.innerText(),/Calculated .*casebrief.cri.idaho-pretrial.v0.2/);
+  assert.ok(await page.getByRole('button',{name:'Close CRI details'}).evaluate(el=>document.activeElement===el));
+  await page.waitForFunction(()=>document.querySelector('[role=dialog]').getBoundingClientRect().right<=innerWidth);
+  assert.ok(await dialog.evaluate(el=>el.getBoundingClientRect().right<=innerWidth),'detail fits narrow viewport');
+  await page.getByRole('button',{name:'Close CRI details'}).click();
+  await page.getByRole('button',{name:'Open review queue'}).click();
+  const timing=page.locator('.item').filter({has:page.getByRole('heading',{name:'Source records describe materially different search/consent sequencing.'})});
+  await timing.getByRole('button',{name:'Confirm',exact:true}).click();
+  await page.locator('#decisionReason').fill('Compared S01, S02 and S03; clock remains unverified.');
+  await page.getByRole('button',{name:'Save decision'}).click();
+  assert.equal(await page.evaluate(()=>score()),63);
+  assert.match(await timing.innerText(),/Human-confirmed/);
+  await timing.getByRole('button',{name:'Dismiss',exact:true}).click();
+  await page.locator('#decisionReason').fill('Synthetic evaluation dismissal.');
+  await page.getByRole('button',{name:'Save decision'}).click();
+  assert.equal(await page.evaluate(()=>score()),71);
+  await timing.getByRole('button',{name:'Reopen',exact:true}).click();
+  await page.locator('#decisionReason').fill('Reopen for synthetic evaluation.');
+  await page.getByRole('button',{name:'Save decision'}).click();
+  assert.equal(await page.evaluate(()=>score()),63);
+  await page.reload();
+  assert.equal(await page.evaluate(()=>data.issues.find(x=>x.id==='PF-TIMING').decisionHistory.length),3);
+  await page.evaluate(()=>{data.documents.find(x=>x.id==='S02').excerpt+=' Revised';showView('review')});
+  assert.match(await page.locator('#app').innerText(),/Source changed — re-review required/);
+  await page.evaluate(()=>{activeSecurityProfile='client';showView('dashboard');openCRI()});
+  assert.equal(await page.locator('[role=dialog]').count(),0);
+  assert.doesNotMatch(await page.locator('#app').innerText(),/different search\/consent|Source review outstanding|PF-TIMING/);
+  await page.evaluate(()=>{activeSecurityProfile='attorney';data.documents=[];showView('dashboard')});
+  assert.match(await page.locator('#app').innerText(),/Insufficient data/);
+  assert.doesNotMatch(await page.locator('#app').innerText(),/100%/);
+  // Pointer activation uses the same accessible calculation control.
+  await page.evaluate(state=>{data.documents=state.documents;data.issues=[];save();showView('dashboard')},fixture.appState);
+  await page.getByRole('button',{name:'Open CRI calculation details'}).click();
+  assert.match(await page.getByRole('dialog').innerText(),/does not predict a legal outcome/);
+  assert.deepEqual(errors,[]);
+  console.log('PASS browser pilot CRI: narrow ring/focus, keyboard activation, details, disposition, source-change history, reload, recipient denial and insufficient data.');
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exitCode=1});
