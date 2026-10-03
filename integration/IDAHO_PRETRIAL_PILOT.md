@@ -34,35 +34,29 @@ or grant the pilot matter host-adoption authority. Do not import real records.
 ## Implemented in this change
 
 - Schema binding, record/detail rendering and persistence tests.
-- Pilot-specific source preview generated only from role-permitted records;
-  no Jordan Hale answers, body-camera claims or fictional court drafts.
-- Pilot drafting blocked at UI and catalogue creation boundaries; filing
-  readiness remains false until Idaho templates are validated.
-- Pilot dashboard shows insufficient CRI data and no verified deadline.
-- Validated 40/35/25 weighted arithmetic helper; no invented case score.
-- Original host-adoption probes unchanged; original matter grants unchanged.
-- Both new suites added to CI alongside the original nine suites.
+- Pilot-specific source preview generated only from role-permitted records.
+- Deterministic source-derived candidate findings for sequencing, unresolved ownership and an exact duplicate record; these remain **AI-detected — not human-confirmed** review prompts.
+- Pilot-specific CRI ruleset `casebrief.cri.idaho-pretrial.v0.1`: 40% record completeness, 35% work control, 25% attention control, with item-level deductions and a current synthetic fixture score of 63%.
+- Attorney-controlled read-only recipient release. Only S01-S04 are releaseable by the pilot allowlist; privileged S06 is mechanically excluded. Expiry and revocation remove later reads.
+- Pilot drafting blocked at UI and catalogue creation boundaries; filing readiness remains false until Idaho templates are validated.
+- Pilot dashboard has no inherited deadline.
+- CaseBrief↔UMG v0.1-draft contract scaffold with host attestation, deny-without-payload behavior, source-bound response validation, zero dispatch and local fallback.
+- Original host-adoption probes and grants remain unchanged.
+- New Idaho Node/browser suites plus UMG contract suite are included in CI alongside the original host-adoption suites.
 
 ## Remaining acceptance gaps
 
-- The source preview is deterministic, not a model or issue detector.
-- The pilot is not granted guarded-host access; its reviewed finding catalogue
-  and laboratory/custody expectation ledger are not implemented.
-- Item-level completeness/work/attention scoring and calibration remain open.
-- Client document access currently follows broad role/classification rules,
-  not the selected released-source list. Sharing, expiry and revocation need
-  separate implementation. These tests do not certify recipient isolation.
-- The original Jordan Hale fixture retains its older CRI implementation.
+- The candidate findings and CRI are deterministic synthetic pilot logic, not a validated model assessment or attorney legal conclusion.
+- The pilot is not granted guarded-host authority merely by existing in the workspace; future UMG analysis must use the explicit CaseBrief host-attestation contract.
+- The separate Founding Pilot / ingestion branch now conflicts with current `main` and must be reconciled deliberately.
+- The original historical fixture retains its older CRI implementation.
 - Synthetic validation does not establish search legality, Idaho authority
   accuracy, live NeoUMG connectivity or production security.
 
-## Validation at development time
+## Validation
 
-The new Node suite and the five original Node suites passed locally. Browser
-execution was blocked by an invalid Chromium download; a pre-existing Chromium
-binary also failed at startup. No browser pass is claimed. The expanded GitHub
-workflow supplies matching Playwright/Chromium and captures exact-head results.
-The original Actions run #2 and open installation thread belong to the prior
-host-adoption head and are not new validation or reviewer sign-off for this work.
+Previous exact head `84e303fdfff492d784902e69b8cf7f73f92eb44d` passed eleven suites in GitHub Actions run #3. The current revision expands the suite with UMG draft-contract validation and updated Idaho Node/browser acceptance checks. Treat the current-head Actions result as authoritative once complete.
+
+No browser, compiler, hosted service or production-security result is claimed unless an exact-head receipt explicitly shows it.
 
 Source pack: https://app.notion.com/p/3edf1cfb412181f0bf37e18fef82eaa3
