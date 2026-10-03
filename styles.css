@@ -37,3 +37,14 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 /* Keep wide procedural tracks/nav content contained on narrow screens. */
 .layout,.main,.sidebar,.card{min-width:0}
 @media(max-width:1050px){.layout{grid-template-columns:minmax(0,1fr)}.sidebar,.main{width:100%;max-width:100vw}}
+
+/* Pilot CRI keeps the value visible while explanation appears beside the ring. */
+.pilot-cri .orb:hover .orbscore,.pilot-cri .orb:focus-visible .orbscore{opacity:1}
+.pilot-cri .crihover{position:static;display:block;width:auto;height:auto;border-radius:12px;padding:14px;text-align:left;font-size:14px;line-height:1.45;transform:none}
+.pilot-cri .orb{margin:8px 0 0;display:block}
+.pilot-cri{min-height:0;padding-bottom:150px}
+.pilot-cri .crihover{position:absolute;top:220px;left:0;width:260px}
+.pilot-cri .orb:focus-visible{outline:3px solid #dfd3ef;outline-offset:4px}
+.pilot-cri-detail{background:rgba(30,24,38,.96);backdrop-filter:blur(18px)}
+.pilot-deduction{margin:10px 0;overflow-wrap:anywhere}
+@media(max-width:600px){.pilot-cri .crihover{top:205px;width:240px}.pilot-cri-detail{max-width:100vw}.pilot-cri-detail .source{white-space:normal;text-align:left}}
