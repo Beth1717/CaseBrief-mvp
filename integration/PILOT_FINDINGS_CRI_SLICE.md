@@ -67,6 +67,7 @@ calibration. The system remains deterministic synthetic logic, not a live model.
 | `tests/browser-pilot-findings-cri.cjs` | Focused browser acceptance checks |
 | `.github/workflows/host-adoption-validation.yml` | Run both focused suites alongside the existing twelve |
 | `integration/PILOT_FINDINGS_CRI_SLICE.md` | Scope, sequence, item policy, acceptance and validation receipt |
+| `integration/IDAHO_PRETRIAL_PILOT.md` | Current ruleset and validation pointers |
 
 ## Acceptance criteria and focused tests
 
@@ -108,3 +109,30 @@ No changes to attorney validation, future broker-enforced UMG integration,
 pilot host catalogue/grants, released-source sharing or the historical fixture's
 CRI. No default fixture change. No live model, legal conclusion, production
 security claim or external actions. Audit remains browser-local MVP storage.
+
+## Follow-up acceptance completion
+
+Actions run #14 validated exact head
+`df9bbc53de274118d85df08df710632e7a1b4d61`: all fourteen suites exited 0,
+including both pilot browser suites. Receipt artifact `11271153974`, SHA-256
+`a596660be94e517b02b7a4938a4a8142eaaaf7a81b4b0ceef45d3d2543369d40`.
+https://github.com/Beth1717/CaseBrief-mvp/actions/runs/37116278915
+
+The next revision closes the final functional gaps identified in review:
+- Already-reviewed source content loses work-control review credit when edited;
+  unchanged sources keep their review state, and invalidation is logged once.
+- CRI details explicitly label provisional attention findings as AI-detected and
+  not human-confirmed. Unsupported historical findings cannot be confirmed.
+- Applicability has an authorised reason-required UI, including restoration;
+  denominator changes and before/after CRI are audited.
+- Calculation dialogs keep keyboard focus within the dialog.
+- A reviewer-only CRI JSON export carries meaning, explanation, score, item
+  ledgers, calculation time and ruleset, with rechecked permission at confirmation.
+- Browser coverage adds applicability changes, focus wrapping, an actual JSON
+  download and touch activation at 320px. Node negative controls ensure ambiguous
+  times and nonduplicate records do not generate candidates or erase missing work.
+
+The follow-up needs its own exact-head CI receipt; run #14 is historical evidence
+for its parent. Latest verification is recorded in PR #4 and the launch checklist.
+Human task-timing evaluation, model calibration and live-data/attorney/runtime
+qualification remain open. No synthetic automation result completes those gates.

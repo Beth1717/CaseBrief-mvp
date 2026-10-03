@@ -45,12 +45,23 @@ function setPilotExpectationApplicability(id,inapplicable,reason){
  if(!isIdahoPilot()||!applicationAllowed()||!requirePermission('review_decisions',`expectation:${id}`))return false;
  if(!pilotExpectationLedger().some(x=>x.id===id)||typeof inapplicable!=='boolean'||!String(reason||'').trim())return false;
  data.pilotExpectationDecisions??={};
- const before=data.pilotExpectationDecisions[id]?.status||'applicable';
+ const criBefore=pilotCRI().score,before=data.pilotExpectationDecisions[id]?.status||'applicable';
  data.pilotExpectationDecisions[id]={status:inapplicable?'inapplicable':'applicable',reason:String(reason).trim(),actor:currentIdentity(),at:new Date().toISOString()};
- record('expectation.applicability_changed',id,{before,...data.pilotExpectationDecisions[id],sources:['S04'],ruleset:PILOT_CRI_RULESET});save();return true;
+ record('expectation.applicability_changed',id,{before,...data.pilotExpectationDecisions[id],sources:['S04'],ruleset:PILOT_CRI_RULESET,criBefore,criAfter:pilotCRI().score});save();return true;
 }
 function ensurePilotFindings(){
  if(!isIdahoPilot())return [];
+ // Reviewed content is revision-bound: editing a source creates a new review task.
+ const revisions=data.pilotSourceRevisions||{};
+ const nextRevisions={};
+ for(const doc of data.documents){
+  const revision=String(doc.excerpt||'');nextRevisions[doc.id]=revision;
+  if(Object.hasOwn(revisions,doc.id)&&revisions[doc.id]!==revision){
+   const wasReviewed=!!doc.reviewed;doc.reviewed=false;
+   record('source.revision_changed',doc.id,{reviewInvalidated:wasReviewed,reviewed:false,ruleset:PILOT_CRI_RULESET},'success',systemActor);
+  }
+ }
+ data.pilotSourceRevisions=nextRevisions;
  if(data.criRuleset!==PILOT_CRI_RULESET){
   record('cri.ruleset_selected',data.matter.id,{before:data.criRuleset||null,after:PILOT_CRI_RULESET,weights:[.40,.35,.25]},'success',systemActor);data.criRuleset=PILOT_CRI_RULESET;
  }
@@ -110,6 +121,9 @@ saveIssueDecision=function(e,id,status){
  const reason=String(document.getElementById('decisionReason')?.value||'').trim();
  if(!data.issues.some(i=>i.id===id)||!reason)return false;
  const criBefore=pilotCRI().score,x=data.issues.find(i=>i.id===id),before=x.status;
+ if(status==='reviewed'&&!x.sourceActive){
+  record('finding.confirmation_blocked',id,{reason:'Current source support is unavailable; dismiss or resolve with a reason instead.',ruleset:PILOT_CRI_RULESET},'denied');return false;
+ }
  x.status=status;x.humanConfirmed=status==='reviewed'||status==='resolved';x.needsSourceReview=false;
  const transition={at:new Date().toISOString(),actor:currentIdentity(),before,after:status,reason,sources:x.sources,citations:x.citations,ruleset:PILOT_CRI_RULESET,humanConfirmed:x.humanConfirmed,criBefore,criAfter:pilotCRI().score};
  // Recalculation replaces finding objects; attach history to the current persisted row.
@@ -148,14 +162,29 @@ canAccessDocument=function(d){
 };
 const _pilotBaseScore=score;
 score=function(){if(isIdahoPilot())return pilotCRI()?.score??null;return _pilotBaseScore()};
+function pilotCRIExportSnapshot(){
+ if(!isIdahoPilot()||!requirePermission('review_decisions','cri:export')||!requirePermission('export','cri:export'))return null;
+ const cri=pilotCRI();
+ return {notice:'Synthetic browser-local pilot calculation; operational readiness only, not legal outcome.',matterId:data.matter.id,explanation:PILOT_CRI_EXPLANATION,...structuredClone(cri)};
+}
+function exportPilotCRI(){
+ const snapshot=pilotCRIExportSnapshot();if(!snapshot)return false;
+ confirmSensitiveAction('CRI export','Export this synthetic matter’s CRI calculation, item labels and source references to a local JSON file.',()=>{
+  // Recheck role and recalculate at the time of confirmation.
+  const payload=pilotCRIExportSnapshot();if(!payload)return;
+  record('cri.exported',data.matter.id,{score:payload.score,ruleset:payload.ruleset,calculatedAt:payload.calculatedAt});
+  const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+  const a=document.createElement('a');a.href=url;a.download='casebrief-pilot-cri.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ });return true;
+}
 function pilotCRIDetailHtml(cri=pilotCRI()){
  if(!cri)return '';
  const restricted=activeSecurityProfile==='client';
  const row=(name,c)=>`<div class="item"><b>${esc(name)}: ${c.value}% × ${Math.round(c.weight*100)}% = ${c.contribution.toFixed(2)}</b>${c.deductions.map(d=>{
   const allowed=!restricted&&(d.sources||[]).every(id=>{const source=sourceById(id);return !source||canAccessDocument(source)});
-  return `<div class="pilot-deduction">−${d.points.toFixed(2)}: ${allowed?esc(d.label):'Restricted factor'} · ${allowed?esc(d.humanConfirmed?'Human-confirmed':d.status||'AI-detected — not human-confirmed'):''}${allowed?`<div>${srcChips(d.sources)}</div><div class="small">${esc(d.correctiveAction)}</div>`:''}</div>`;
+  return `<div class="pilot-deduction">−${d.points.toFixed(2)}: ${allowed?esc(d.label):'Restricted factor'} · ${allowed?esc(d.humanConfirmed?'Human-confirmed':d.id.startsWith('PA-')?'AI-detected — not human-confirmed':d.status):''}${allowed?`<div>${srcChips(d.sources)}</div><div class="small">${esc(d.correctiveAction)}</div>`:''}</div>`;
  }).join('')||'<div class="small muted">No deductions.</div>'}</div>`;
- return `<div class="metric">${cri.score===null?'Insufficient data':cri.score+'%'}</div><p>${esc(PILOT_CRI_EXPLANATION)}</p><p>${esc(cri.meaning)}</p>${cri.score===null?'<p>Qualifying inventory and applicable expectations are required.</p>':`<div class="list">${row('Record completeness',cri.components.completeness)}${row('Work control',cri.components.workControl)}${row('Attention control',cri.components.attentionControl)}</div><p>Unrounded total ${cri.unrounded.toFixed(2)} → ${cri.score}%. Applicable completeness denominator: ${cri.applicableExpectations}.</p>`}<div class="meta">Calculated ${esc(cri.calculatedAt)} · Ruleset ${esc(cri.ruleset)}</div>`;
+ return `<div class="metric">${cri.score===null?'Insufficient data':cri.score+'%'}</div><p>${esc(PILOT_CRI_EXPLANATION)}</p><p>${esc(cri.meaning)}</p>${cri.score===null?'<p>Qualifying inventory and applicable expectations are required.</p>':`<div class="list">${row('Record completeness',cri.components.completeness)}${row('Work control',cri.components.workControl)}${row('Attention control',cri.components.attentionControl)}</div><p>Unrounded total ${cri.unrounded.toFixed(2)} → ${cri.score}%. Applicable completeness denominator: ${cri.applicableExpectations}.</p>`}${can('review_decisions')?pilotExpectationHtml():''}<div class="meta">Calculated ${esc(cri.calculatedAt)} · Ruleset ${esc(cri.ruleset)}</div>`;
 }
 const _pilotBaseOpenCRI=openCRI;
 openCRI=function(){
@@ -164,7 +193,7 @@ openCRI=function(){
  if(!requirePermission('review_decisions','cri:details'))return false;
  returnFocus=document.activeElement;
  const cri=pilotCRI();record('cri.opened',data.matter.id,{score:cri.score,components:cri.components,ruleset:cri.ruleset,calculatedAt:cri.calculatedAt});
- document.getElementById('detailRoot').innerHTML=`<div class="drawerback" onclick="if(event.target===this)closeDetail()"><aside class="drawer pilot-cri-detail" role="dialog" aria-modal="true" aria-labelledby="pilotCRITitle"><div class="drawerhead"><div><div class="kicker">Case readiness</div><h2 id="pilotCRITitle">Case Readiness Index (CRI)</h2></div><button class="btn drawerclose" aria-label="Close CRI details" onclick="closeDetail()">×</button></div>${pilotCRIDetailHtml(cri)}</aside></div>`;
+ document.getElementById('detailRoot').innerHTML=`<div class="drawerback" onclick="if(event.target===this)closeDetail()"><aside class="drawer pilot-cri-detail" onkeydown="pilotDialogKeyboard(event)" role="dialog" aria-modal="true" aria-labelledby="pilotCRITitle"><div class="drawerhead"><div><div class="kicker">Case readiness</div><h2 id="pilotCRITitle">Case Readiness Index (CRI)</h2></div><button class="btn drawerclose" aria-label="Close CRI details" onclick="closeDetail()">×</button></div>${pilotCRIDetailHtml(cri)}${can('export')?'<button class="btn" onclick="exportPilotCRI()">Export CRI calculation</button>':''}</aside></div>`;
  document.querySelector('[role=dialog] button')?.focus();
 };
 const _pilotBaseDashboard=dashboard;
@@ -184,7 +213,7 @@ review=function(){
  return `<div class="kicker">Human review queue</div><h2>Candidate factual findings</h2><p class="callout"><b>AI identifies. Human decides.</b> Deterministic synthetic review prompts; no legal conclusion.</p><div class="list">${data.issues.filter(x=>String(x.id).startsWith('PF-')).map(x=>{
   const visible=x.sources.every(id=>{const source=sourceById(id);return !source||canAccessDocument(source)});
   if(!visible)return '<div class="item">Restricted factor</div>';
-  return `<div class="item"><h3>${esc(x.statement)}</h3><p>${esc(x.why)}</p><span class="pill">${esc(x.status)}</span><span class="pill">${x.humanConfirmed?'Human-confirmed':'AI-detected — not human-confirmed'}</span>${x.needsSourceReview?'<p class="callout">Source changed — re-review required.</p>':''}<div>${srcChips(x.sources)}</div><div class="row">${['reviewed','resolved','dismissed','open'].map(status=>`<button class="btn" onclick="beginIssueDecision('${x.id}','${status}')">${({reviewed:'Confirm',resolved:'Resolve',dismissed:'Dismiss',open:'Reopen'})[status]}</button>`).join('')}</div><details><summary>Decision history (${x.decisionHistory.length})</summary>${x.decisionHistory.map(h=>`<p>${esc(h.at)} · ${esc(h.actor?.name)} · ${esc(h.before)} → ${esc(h.after)} · ${esc(h.reason)} · ${esc(h.ruleset)}</p>`).join('')}</details></div>`;
+  return `<div class="item"><h3>${esc(x.statement)}</h3><p>${esc(x.why)}</p><span class="pill">${esc(x.status)}</span><span class="pill">${x.humanConfirmed?'Human-confirmed':'AI-detected — not human-confirmed'}</span>${x.needsSourceReview?'<p class="callout">Source changed — re-review required.</p>':''}${!x.sourceActive?'<p class="callout">Prior finding: current source support is unavailable. Confirmation is blocked.</p>':''}<div>${srcChips(x.sources)}</div><div class="row">${['reviewed','resolved','dismissed','open'].map(status=>`<button class="btn" onclick="beginIssueDecision('${x.id}','${status}')">${({reviewed:'Confirm',resolved:'Resolve',dismissed:'Dismiss',open:'Reopen'})[status]}</button>`).join('')}</div><details><summary>Decision history (${x.decisionHistory.length})</summary>${x.decisionHistory.map(h=>`<p>${esc(h.at)} · ${esc(h.actor?.name)} · ${esc(h.before)} → ${esc(h.after)} · ${esc(h.reason)} · ${esc(h.ruleset)}</p>`).join('')}</details></div>`;
  }).join('')}</div>`;
 };
 const _pilotBaseOpenDetail=openDetail;
@@ -196,3 +225,28 @@ openDetail=function(type,id){
  }
  return _pilotBaseOpenDetail(type,id);
 };
+
+function pilotExpectationHtml(){
+ return `<h3>Record applicability</h3><p>Exclude an expectation only with an authorised reason. Exclusion does not supply the record.</p><div class="list">${pilotExpectationLedger().map(x=>`<div class="item"><b>${esc(x.label)}</b><div class="meta">${esc(x.status)} · ${esc(x.recordId)}</div>${srcChips([...x.basisSources,...x.provisionSources])}<button class="btn" onclick="beginPilotExpectationDecision('${x.id}',${x.status!=='inapplicable'})">${x.status==='inapplicable'?'Restore applicability':'Mark inapplicable'}</button></div>`).join('')}</div>`;
+}
+function beginPilotExpectationDecision(id,inapplicable){
+ if(!isIdahoPilot()||!requirePermission('review_decisions',`expectation:${id}`))return false;
+ const x=pilotExpectationLedger().find(x=>x.id===id);if(!x||typeof inapplicable!=='boolean')return false;
+ returnFocus=document.activeElement;
+ document.getElementById('detailRoot').innerHTML=`<div class="drawerback"><aside class="drawer pilot-cri-detail" onkeydown="pilotDialogKeyboard(event)" role="dialog" aria-modal="true" aria-labelledby="expectationTitle"><div class="drawerhead"><h2 id="expectationTitle">${inapplicable?'Mark inapplicable':'Restore applicability'}</h2><button class="btn drawerclose" aria-label="Close applicability decision" onclick="closeDetail()">×</button></div><p>${esc(x.label)}</p><p>This changes the completeness denominator. It does not establish record provision.</p><form onsubmit="savePilotExpectationDecision(event,'${id}',${inapplicable})"><label for="expectationReason">Reason (required)</label><textarea id="expectationReason" required></textarea><button class="btn primary">Save applicability</button></form></aside></div>`;
+ document.getElementById('expectationReason')?.focus();return true;
+}
+function savePilotExpectationDecision(event,id,inapplicable){
+ event.preventDefault();
+ const reason=document.getElementById('expectationReason')?.value||'';
+ if(!setPilotExpectationApplicability(id,inapplicable,reason))return false;
+ closeDetail();render();openCRI();return true;
+}
+function pilotDialogKeyboard(event){
+ if(event.key!=='Tab')return;
+ const controls=[...event.currentTarget.querySelectorAll('button:not([disabled]),textarea,input,select,a[href],[tabindex="0"]')];
+ if(!controls.length)return;
+ const first=controls[0],last=controls.at(-1);
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+ else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+}

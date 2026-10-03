@@ -36,7 +36,7 @@ or grant the pilot matter host-adoption authority. Do not import real records.
 - Schema binding, record/detail rendering and persistence tests.
 - Pilot-specific source preview generated only from role-permitted records.
 - Deterministic source-derived candidate findings for sequencing, unresolved ownership and an exact duplicate record; these remain **AI-detected — not human-confirmed** review prompts.
-- Pilot-specific CRI ruleset `casebrief.cri.idaho-pretrial.v0.1`: 40% record completeness, 35% work control, 25% attention control, with item-level deductions and a current synthetic fixture score of 63%.
+- Pilot-specific CRI ruleset `casebrief.cri.idaho-pretrial.v0.2`: 40% record completeness, 35% work control, 25% attention control, with item-level deductions and a current synthetic fixture score of 63%.
 - Attorney-controlled read-only recipient release. Only S01-S04 are releaseable by the pilot allowlist; privileged S06 is mechanically excluded. Expiry and revocation remove later reads.
 - Pilot drafting blocked at UI and catalogue creation boundaries; filing readiness remains false until Idaho templates are validated.
 - Pilot dashboard has no inherited deadline.
@@ -60,3 +60,17 @@ Previous exact head `84e303fdfff492d784902e69b8cf7f73f92eb44d` passed eleven sui
 No browser, compiler, hosted service or production-security result is claimed unless an exact-head receipt explicitly shows it.
 
 Source pack: https://app.notion.com/p/3edf1cfb412181f0bf37e18fef82eaa3
+
+## Finding lifecycle and CRI follow-up (PR #4)
+
+See [PILOT_FINDINGS_CRI_SLICE.md](PILOT_FINDINGS_CRI_SLICE.md) for the current
+item policy, acceptance criteria and exact files. Candidate findings retain
+human decisions and source-change history. Source edits reset review credit.
+The segmented precision ring keeps its central value and explains CRI on
+hover/focus; activation shows auditable calculation details. Applicability
+requires a reason, canonical provision remains separate from disposition, and
+reviewer-only calculation exports carry meaning/time/version.
+
+PR #4 parent head `df9bbc53de274118d85df08df710632e7a1b4d61` passed all fourteen
+Node/browser suites in Actions run #14. Use the latest PR-head receipt for the
+follow-up revision rather than treating that parent receipt as current evidence.
