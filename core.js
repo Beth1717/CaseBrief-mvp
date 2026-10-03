@@ -56,7 +56,11 @@ function persist(){try{localStorage.setItem(STORE,JSON.stringify(workspace));sto
 function save(){workspace.cases[data.matter.id]=data;return persist()}
 function record(action,target,details={},outcome='success',initiator=currentIdentity()){const event={id:crypto.randomUUID(),at:new Date().toISOString(),matterId:data.matter.id,sessionId,actor:structuredClone(initiator),action,target,outcome,details:structuredClone(details)};workspace.events.push(event);return persist()?structuredClone(event):false}
 function isUnresolved(x){return x.status==='open'||x.status==='reviewed'}
-function score(){return Math.max(0,100-data.issues.filter(isUnresolved).reduce((s,x)=>s+(Number(x.weight)||0),0))}
+function weightedReadiness(components){
+ if(!Array.isArray(components)||components.length!==3||components.some(x=>typeof x!=='number'||!Number.isFinite(x)||x<0||x>100))return null;
+ return Math.round(components[0]*.40+components[1]*.35+components[2]*.25);
+}
+function score(){if(data.matter.id==='SYN-ID-PRETRIAL-001')return null;return Math.max(0,100-data.issues.filter(isUnresolved).reduce((s,x)=>s+(Number(x.weight)||0),0))}
 function factorGroups(){const groups={};for(const x of data.issues.filter(isUnresolved)){const k=x.category.replaceAll('_',' ');groups[k]=(groups[k]||0)+(Number(x.weight)||0)}return Object.entries(groups).sort((a,b)=>b[1]-a[1])}
 function factorSummary(full=false){const rows=factorGroups();if(!rows.length)return '<div class="muted small">No scored factors.</div>';const shown=full?rows:rows.slice(0,10);return `<div class="${full?'list':'factorgrid'}">${shown.map(([k,v])=>full?`<div class="item"><div class="row" style="justify-content:space-between"><b>${esc(k)}</b><b class="warn">−${v}%</b></div><div class="small muted">Combined effect of unresolved ${esc(k)} factors on the current prototype CRI.</div></div>`:`<span class="factorline"><span>${esc(k)}</span><b>−${v}%</b></span>`).join('')}</div>`}
 function srcChips(arr=[]){return arr.map(id=>{const d=data.documents.find(x=>x.id===id);if(d&&!canAccessDocument(d))return `<span class="pill restricted" title="Blocked by active role">Restricted source</span>`;return `<button class="pill source" onclick="event.stopPropagation();openDetail('document','${esc(id)}')">${esc(d?d.title:id)}</button>`}).join('')}

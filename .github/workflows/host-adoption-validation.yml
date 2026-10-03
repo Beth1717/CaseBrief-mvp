@@ -39,6 +39,9 @@ jobs:
           for suite in \
             tests/state.cjs \
             tests/browser.cjs \
+            tests/idaho-pretrial.cjs \
+            tests/browser-idaho-pretrial.cjs \
+            integration/tests/umg-runtime-contract-v0.1.cjs \
             integration/tests/host-adoption.cjs \
             integration/tests/browser-host-adoption.cjs \
             integration/tests/casebrief-sleeve-contract.cjs \
