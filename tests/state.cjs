@@ -8,7 +8,7 @@ const context={structuredClone,crypto:webcrypto,console,Blob,URL,setTimeout,clea
 vm.createContext(context);
 const html=fs.readFileSync('index.html','utf8');
 const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]);
-assert.deepEqual(sources,['seed.js','security.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','actions.js','security-runtime.js','demo-capabilities.js']);
+assert.deepEqual(sources,['seed.js','security.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','integration/host-controls.js','actions.js','security-runtime.js','demo-capabilities.js']);
 for(const src of sources)vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
 const run=s=>vm.runInContext(s,context);
 assert.equal(run('current'),'landing');

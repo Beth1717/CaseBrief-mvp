@@ -1,0 +1,64 @@
+name: Host adoption validation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Validate the PR head itself, not GitHub's synthetic merge commit.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install matching Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.62.1
+          npx --no-install playwright install --with-deps chromium
+      - name: Run all existing and remediation suites
+        shell: bash
+        run: |
+          set -u
+          printf 'Exact Git HEAD: %s\n' "$(git rev-parse HEAD)" | tee validation-receipt.txt
+          python3 -m http.server 8765 --bind 127.0.0.1 >server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8765/ > /dev/null; then break; fi
+            sleep 1
+          done
+          failed=0
+          for suite in \
+            tests/state.cjs \
+            tests/browser.cjs \
+            integration/tests/host-adoption.cjs \
+            integration/tests/browser-host-adoption.cjs \
+            integration/tests/casebrief-sleeve-contract.cjs \
+            integration/tests/remediation.cjs \
+            integration/tests/browser-remediation.cjs \
+            integration/tests/decision-security.cjs \
+            integration/tests/browser-control-failure.cjs; do
+            printf '\n$ node %s\n' "$suite" | tee -a validation-receipt.txt
+            node "$suite" 2>&1 | tee -a validation-receipt.txt
+            status=${PIPESTATUS[0]}
+            printf 'EXIT %s: %s\n' "$suite" "$status" | tee -a validation-receipt.txt
+            if ((status != 0)); then failed=1; fi
+          done
+          exit "$failed"
+      - name: Upload exact-head receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-adoption-receipt-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            validation-receipt.txt
+            server.log
+          if-no-files-found: ignore

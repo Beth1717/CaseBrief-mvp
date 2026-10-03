@@ -1,7 +1,7 @@
 // Security enforcement wrappers for the static MVP. These are meaningful client-side controls for demonstration,
 // but production authorization must also be enforced server-side.
 const _baseRender=render;
-render=function(){const map={landing,dashboard,review,timeline,evidence,witnesses,documents,authorities,assistant,drafting,communications,umg,audit:activityHistory,safeguards,security:securityCenter,survey};const fn=map[current]||dashboard;document.getElementById('app').innerHTML=fn();updateStorageNotice();applySecurityUI();syncPrivacyShield();syncLockScreen()};
+render=function(){if(!applicationAllowed())return blockApplication();const map={landing,dashboard,review,timeline,evidence,witnesses,documents,authorities,assistant,drafting,communications,umg,audit:activityHistory,safeguards,security:securityCenter,survey};const fn=map[current]||dashboard;document.getElementById('app').innerHTML=fn();updateStorageNotice();applySecurityUI();syncPrivacyShield();syncLockScreen()};
 
 const _baseOpenDetail=openDetail;
 openDetail=function(type,id){
