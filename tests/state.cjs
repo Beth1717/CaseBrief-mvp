@@ -13,7 +13,9 @@ for(const src of sources)vm.runInContext(fs.readFileSync(src,'utf8'),context,{fi
 const run=s=>vm.runInContext(s,context);
 assert.equal(run('current'),'landing');
 assert.equal(run('score()'),26);
-assert.ok(run('dashboard()').includes('Factors reducing CRI'));
+assert.ok(run('dashboard()').includes('measures operational readiness'));
+assert.ok(!run('criRing(score())').includes('Factors reducing CRI'));
+assert.ok(run('criRing(score())').includes('aria-describedby="cri-explanation"'));
 assert.ok(run('dashboard()').includes('Ask AI'));
 assert.ok(run('dashboard()').includes('Law & authority'));
 assert.ok(run('dashboard()').includes('Where this case is now'));
