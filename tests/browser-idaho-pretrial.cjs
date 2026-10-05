@@ -6,7 +6,7 @@ const fixture = require('../integration/fixtures/idaho-pretrial.json');
  const executablePath=process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||['/usr/bin/chromium','/usr/bin/chromium-browser','/usr/bin/google-chrome'].find(fs.existsSync);
  const browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
  try{
-  const page=await browser.newPage(),errors=[];
+  const page=await browser.newPage({hasTouch:true}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:8765');
   await page.evaluate(state=>{
@@ -17,6 +17,23 @@ const fixture = require('../integration/fixtures/idaho-pretrial.json');
   await page.getByRole('button',{name:'Open demo workspace'}).click();
   await page.getByRole('heading',{name:'Case Readiness Index: 63%'}).waitFor();
   assert.doesNotMatch(await page.locator('#app').innerText(), /Aug 26|100%/);
+  await page.locator('.orb').hover();await page.waitForTimeout(250);
+  assert.equal(await page.locator('.crihover').evaluate(el=>getComputedStyle(el).opacity),'1');
+  assert.match(await page.locator('.crihover').innerText(),/measures operational readiness/);
+  assert.equal(await page.locator('.orbscore').evaluate(el=>getComputedStyle(el).opacity),'1');
+  await page.mouse.move(0,0);await page.keyboard.press('Tab');await page.locator('.orb').focus();await page.waitForTimeout(250);
+  assert.equal(await page.locator('.crihover').evaluate(el=>getComputedStyle(el).opacity),'1');
+  await page.keyboard.press('Enter');
+  await page.getByRole('heading',{name:'Case Readiness Index (CRI)'}).waitFor();
+  assert.match(await page.locator('#detailRoot').innerText(),/Record completeness|Work control|Attention control/);
+  await page.evaluate(()=>closeDetail());
+  await page.setViewportSize({width:390,height:844});
+  await page.locator('.orb').tap();
+  await page.getByRole('heading',{name:'Case Readiness Index (CRI)'}).waitFor();
+  await page.evaluate(()=>closeDetail());
+  await page.locator('.orb').hover();await page.waitForTimeout(250);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+
 
   await page.getByRole('button',{name:'Open review queue'}).click();
   const reviewText=await page.locator('#app').innerText();
