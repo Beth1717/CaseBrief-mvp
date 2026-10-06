@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "casebrief.umg.record-consistency.response.v0.1-draft",
+  "contractRevision": 2,
+  "requestId": "req-supported_contradiction",
+  "correlationId": "corr-supported_contradiction",
+  "status": "SUCCEEDED",
+  "authorization": {
+    "status": "ALLOW",
+    "authority": "CaseBrief",
+    "matterId": "matter-001",
+    "decisionId": "auth-supported_contradiction"
+  },
+  "sleeve": {
+    "id": "SLV.CASEBRIEF.LEGALANALYSIS.v0.1",
+    "revision": 1,
+    "profile": "umg.project-lab.sleeve/1.0"
+  },
+  "runtime": {
+    "serviceProfile": "umg.framework.service.v0.1-rc.2",
+    "semanticProfile": "h4.compat.v0.1",
+    "compilerBuildId": "5f68942c834c7c70cd425f4e7788f170ad092eb5",
+    "compilerExecution": "EXECUTED",
+    "frameworkExecution": "EXECUTED",
+    "h4CompatibilityQualification": "PASS",
+    "neoUMGLineageQualification": "NOT_RUN",
+    "formalNeoUMGQualification": false,
+    "compileReceiptId": "compile-receipt_af413197a7de22c5084986550bff8d17584f6f387ad51d0657ee5c8649047b0a",
+    "runtimeSpecDigest": "980bcb3945ac6b848f0efe592198de5dfe9a9f25eb1d545471f1ded0570b3e21",
+    "traceId": "trace_37a27e4bda4f44248f322862c2c420558e191813a0771c054b45352a9476be46",
+    "runtimeHash": "dd2d1ca1e3a8a42ef0ebc36a47100a072a143037f3f093d1e0c01ad98b7cb443",
+    "traceDigest": "37a27e4bda4f44248f322862c2c420558e191813a0771c054b45352a9476be46",
+    "frameworkRevisionId": "rev_a39bc1b6148a568ce17214ccb791d4a4df9937bbe6dbb8ebbde0f99bd0415b6a",
+    "frameworkSemanticDigest": "efcf3812e3e996352dd7824232dd3403fc48c7051988d5ea68673e1e822f763d",
+    "planOnlyReceiptId": null,
+    "planOnlyDigest": null
+  },
+  "result": {
+    "acceptedFindings": [
+      {
+        "findingId": "i1",
+        "category": "contradiction",
+        "statement": "The reported start time appears inconsistent across the incident report and witness statement.",
+        "sourceRefs": [
+          "doc-1",
+          "doc-2"
+        ],
+        "confidence": {
+          "level": "HIGH",
+          "basis": [
+            "exact reviewed synthetic finding and authorized source bindings matched"
+          ]
+        },
+        "reviewState": "HUMAN_REVIEW_REQUIRED",
+        "quarantineReason": null
+      }
+    ],
+    "quarantinedFindings": [],
+    "expectations": [
+      {
+        "expectationId": "expectation-bc-1841-a",
+        "recordId": "BC-1841-A",
+        "status": "not_provided",
+        "basisSourceIds": [
+          "doc-1",
+          "doc-5",
+          "doc-8"
+        ],
+        "decisionRef": null
+      }
+    ],
+    "unresolvedItems": [
+      "Expected record BC-1841-A remains unresolved."
+    ]
+  },
+  "effects": {
+    "dispatchCount": 0,
+    "executed": [],
+    "proposed": []
+  },
+  "auditEvents": [
+    {
+      "eventType": "framework.compile.bound",
+      "auditId": "audit-req-supported_contradiction",
+      "requestId": "req-supported_contradiction",
+      "compileReceiptId": "compile-receipt_af413197a7de22c5084986550bff8d17584f6f387ad51d0657ee5c8649047b0a",
+      "runtimeSpecDigest": "980bcb3945ac6b848f0efe592198de5dfe9a9f25eb1d545471f1ded0570b3e21",
+      "runtimeHash": "dd2d1ca1e3a8a42ef0ebc36a47100a072a143037f3f093d1e0c01ad98b7cb443",
+      "effectsDispatched": 0
+    },
+    {
+      "eventType": "casebrief.analysis.completed",
+      "auditId": "audit-req-supported_contradiction",
+      "matterId": "matter-001",
+      "acceptedFindingIds": [
+        "i1"
+      ],
+      "quarantinedFindingIds": [],
+      "effectsDispatched": 0
+    }
+  ],
+  "provenance": {
+    "synthetic": true,
+    "sourceIds": [
+      "doc-1",
+      "doc-2",
+      "doc-5",
+      "doc-8"
+    ],
+    "fixtureId": "supported_contradiction"
+  },
+  "error": null
+}

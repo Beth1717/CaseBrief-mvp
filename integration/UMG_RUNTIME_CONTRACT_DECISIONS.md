@@ -77,3 +77,7 @@ Before confidential matter data may cross the service boundary, the parties stil
 ## Current runtime posture
 
 CaseBrief host-adoption PR #1 is merged. The Idaho pretrial pilot remains synthetic. The adapter contract is development scaffolding, not proof of NeoUMG execution or production security.
+
+## October 5/6 revision-2 qualification update
+
+Chris supplied the local Framework/H4 package. CaseBrief matched its ZIP fingerprint, reproduced the four scenarios and 15 failure checks, and built/tested `umg-runtime-rev2.cjs` against the actual revision-2 schemas and HTTP wrapper. The old scaffold above uses an earlier message shape and is retained for historical tests only. See `UMG_REV2_QUALIFICATION.md`. Contract freeze and all confidential-data production gates remain open.

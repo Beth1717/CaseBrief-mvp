@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "casebrief.umg.record-consistency.response.v0.1-draft",
+  "contractRevision": 2,
+  "requestId": "req-wrong_matter",
+  "correlationId": "corr-wrong_matter",
+  "status": "DENIED",
+  "authorization": {
+    "status": "DENY",
+    "authority": "CaseBrief",
+    "matterId": "matter-002",
+    "decisionId": "auth-wrong_matter"
+  },
+  "sleeve": {
+    "id": "SLV.CASEBRIEF.LEGALANALYSIS.v0.1",
+    "revision": 1,
+    "profile": "umg.project-lab.sleeve/1.0"
+  },
+  "runtime": {
+    "serviceProfile": "umg.framework.service.v0.1-rc.2",
+    "semanticProfile": "h4.compat.v0.1",
+    "compilerBuildId": "5f68942c834c7c70cd425f4e7788f170ad092eb5",
+    "compilerExecution": "NOT_EXECUTED",
+    "frameworkExecution": "NOT_EXECUTED",
+    "h4CompatibilityQualification": "NOT_RUN",
+    "neoUMGLineageQualification": "NOT_RUN",
+    "formalNeoUMGQualification": false,
+    "compileReceiptId": null,
+    "runtimeSpecDigest": null,
+    "traceId": null,
+    "runtimeHash": null,
+    "traceDigest": null,
+    "frameworkRevisionId": null,
+    "frameworkSemanticDigest": null,
+    "planOnlyReceiptId": null,
+    "planOnlyDigest": null
+  },
+  "result": {
+    "acceptedFindings": [],
+    "quarantinedFindings": [],
+    "expectations": [],
+    "unresolvedItems": []
+  },
+  "effects": {
+    "dispatchCount": 0,
+    "executed": [],
+    "proposed": []
+  },
+  "auditEvents": [
+    {
+      "eventType": "analysis.denied",
+      "auditId": "audit-req-wrong_matter",
+      "matterId": "matter-002",
+      "code": "MATTER_NOT_AUTHORIZED",
+      "effectsDispatched": 0
+    }
+  ],
+  "provenance": {
+    "synthetic": true,
+    "sourceIds": [],
+    "fixtureId": "wrong_matter"
+  },
+  "error": {
+    "code": "MATTER_NOT_AUTHORIZED",
+    "message": "CaseBrief denied the matter before UMG execution",
+    "retryable": false,
+    "details": {}
+  }
+}

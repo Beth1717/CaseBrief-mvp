@@ -34,7 +34,7 @@ These protections improve the MVP and make least-privilege behaviour demonstrabl
 ### Case overview and CRI
 
 - Case Readiness Index (CRI) rendered as a segmented precision ring.
-- Hover/focus places a **translucent circular layer directly over the CRI ring**. The layer shows factor **categories** and the combined percentage each category is reducing the current CRI.
+- Hover/focus shows a translucent explanation of what CRI measures while keeping the central value visible. Click/tap opens calculation detail; the Idaho pilot uses the approved 40/35/25 component model.
 - Clicking the CRI opens deeper factor detail with category totals, individual review items, source IDs, and current scoring effects.
 - Reviewed findings continue to reduce CRI until resolved or dismissed. Review decisions require a nonblank reason and record before/after state and CRI values.
 - CRI remains a workload/readiness indicator only; it does not predict guilt, innocence, merit, or case outcome.
@@ -80,7 +80,7 @@ These protections improve the MVP and make least-privilege behaviour demonstrabl
 - Source-linked factor inspection and review queue.
 - Explicitly seeded potential preservation/disclosure concern for attorney review; it is not represented as a validated legal conclusion.
 - Evidence, witness, document, chronology, and case-switching views.
-- Two isolated synthetic matters; the empty intake matter shows CRI pending rather than a misleading 100% score.
+- Existing fictional and intake matters remain isolated; the investor walkthrough makes the tested synthetic Idaho pilot accessible as a third matter. Empty qualifying input shows insufficient data rather than 100%.
 - Matter-level activity history and JSON export for human and system actions.
 - High-contrast copy, keyboard activation, Escape-close dialogs, focus-visible treatment, reduced-motion support, and responsive layout.
 
@@ -108,6 +108,12 @@ Before real legal data is permitted, production must implement server-verified a
 
 CRI weights are illustrative and unvalidated. Dates belong to a historical synthetic fixture. UMG sandbox review displays seeded results and does not contact Christopher’s runtime.
 
-## Verification status
+## Investor demonstration and verification
 
-The prior v3 interaction/state regressions passed before this security-hardening pass. The September 13 security pass changed navigation, role enforcement, AI source filtering, document visibility, communications, clipboard/export flow, and session/privacy controls; these changes should be included in the next automated browser regression before presenting the MVP as technically validated. The repo deliberately does not claim that client-side demo controls are production security.
+The investor walkthrough adds the tested Idaho fixture, seven-step presentation guide, permitted-source question responses, internal memo creation/versioning, family release/revocation and scoped rehearsal reset. Court templates for Idaho remain blocked pending attorney validation. Recipient views/drawers are limited to released records; role changes close open drawers and rendering rechecks view permissions.
+
+All 17 automated Node/browser suites pass locally on the investor build, including existing host-adoption/security regressions, the end-to-end investor walkthrough and revision-2 adapter defenses. Desktop presentation surfaces were visually inspected; browser tests cover 390px mobile containment. Local browser execution used an explicit Chromium executable override. Exact-head CI receipts are attached to the PR workflow when available.
+
+The supplied checksum-matched UMG package was independently reproduced locally. A separately tested Node-only revision-2 adapter replayed all four cases against the real local Framework/H4 wrapper with zero dispatch. Optional Python schema validation was skipped by the package runner; CaseBrief validated the replay pairs using pinned Ajv and supplied schemas. The browser remains deterministic and does not contact the runtime.
+
+See `integration/INVESTOR_DEMO_GUIDE.md` for the presenter script and launch evidence gates, and `integration/UMG_REV2_QUALIFICATION.md` for local adapter scope and evidence. Neither this investor demonstration nor synthetic runtime qualification is production security certification.

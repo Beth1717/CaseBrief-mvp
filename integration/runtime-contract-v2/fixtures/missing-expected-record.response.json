@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "casebrief.umg.record-consistency.response.v0.1-draft",
+  "contractRevision": 2,
+  "requestId": "req-missing_expected_record",
+  "correlationId": "corr-missing_expected_record",
+  "status": "SUCCEEDED",
+  "authorization": {
+    "status": "ALLOW",
+    "authority": "CaseBrief",
+    "matterId": "matter-001",
+    "decisionId": "auth-missing_expected_record"
+  },
+  "sleeve": {
+    "id": "SLV.CASEBRIEF.LEGALANALYSIS.v0.1",
+    "revision": 1,
+    "profile": "umg.project-lab.sleeve/1.0"
+  },
+  "runtime": {
+    "serviceProfile": "umg.framework.service.v0.1-rc.2",
+    "semanticProfile": "h4.compat.v0.1",
+    "compilerBuildId": "5f68942c834c7c70cd425f4e7788f170ad092eb5",
+    "compilerExecution": "EXECUTED",
+    "frameworkExecution": "EXECUTED",
+    "h4CompatibilityQualification": "PASS",
+    "neoUMGLineageQualification": "NOT_RUN",
+    "formalNeoUMGQualification": false,
+    "compileReceiptId": "compile-receipt_837e85e864d3ad08377781fc34541d5470797f64449a98a354a511737874173c",
+    "runtimeSpecDigest": "92ec5f6f76af61906f014e5fbae293fb2fd334968a3279f8551b0c3f485a246a",
+    "traceId": "trace_e01a526ebc307f8c51bfce41c5e6a1bd525899a6178c525ee6e2d2f9104c1f1b",
+    "runtimeHash": "46b747e23af5dd3b66a91c310b79412a89b5bc02f13cd33c7046e181b22c257a",
+    "traceDigest": "e01a526ebc307f8c51bfce41c5e6a1bd525899a6178c525ee6e2d2f9104c1f1b",
+    "frameworkRevisionId": "rev_4175c15333bab3d12e6f806bf5f86c5e7cacb6e62b932703a1cad8e71c158fb2",
+    "frameworkSemanticDigest": "2d4b324699689732bc4d2963186560e84adf92686b47a90f32bff95e331e122f",
+    "planOnlyReceiptId": null,
+    "planOnlyDigest": null
+  },
+  "result": {
+    "acceptedFindings": [],
+    "quarantinedFindings": [],
+    "expectations": [
+      {
+        "expectationId": "expectation-bc-1841-a",
+        "recordId": "BC-1841-A",
+        "status": "not_provided",
+        "basisSourceIds": [
+          "doc-1",
+          "doc-5",
+          "doc-8"
+        ],
+        "decisionRef": null
+      }
+    ],
+    "unresolvedItems": [
+      "Expected record BC-1841-A remains unresolved."
+    ]
+  },
+  "effects": {
+    "dispatchCount": 0,
+    "executed": [],
+    "proposed": []
+  },
+  "auditEvents": [
+    {
+      "eventType": "framework.compile.bound",
+      "auditId": "audit-req-missing_expected_record",
+      "requestId": "req-missing_expected_record",
+      "compileReceiptId": "compile-receipt_837e85e864d3ad08377781fc34541d5470797f64449a98a354a511737874173c",
+      "runtimeSpecDigest": "92ec5f6f76af61906f014e5fbae293fb2fd334968a3279f8551b0c3f485a246a",
+      "runtimeHash": "46b747e23af5dd3b66a91c310b79412a89b5bc02f13cd33c7046e181b22c257a",
+      "effectsDispatched": 0
+    },
+    {
+      "eventType": "casebrief.analysis.completed",
+      "auditId": "audit-req-missing_expected_record",
+      "matterId": "matter-001",
+      "acceptedFindingIds": [],
+      "quarantinedFindingIds": [],
+      "effectsDispatched": 0
+    }
+  ],
+  "provenance": {
+    "synthetic": true,
+    "sourceIds": [
+      "doc-1",
+      "doc-2",
+      "doc-5",
+      "doc-8"
+    ],
+    "fixtureId": "missing_expected_record"
+  },
+  "error": null
+}

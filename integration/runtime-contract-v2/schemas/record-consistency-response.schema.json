@@ -1,0 +1,488 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:casebrief:umg:record-consistency:response:v0.1-draft",
+  "title": "UMG to CaseBrief Record Consistency Review response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractRevision",
+    "requestId",
+    "correlationId",
+    "status",
+    "authorization",
+    "sleeve",
+    "runtime",
+    "result",
+    "effects",
+    "auditEvents",
+    "provenance",
+    "error"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "casebrief.umg.record-consistency.response.v0.1-draft"
+    },
+    "requestId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "SUCCEEDED",
+        "DENIED",
+        "BLOCKED",
+        "NEEDS_INPUT",
+        "ERROR",
+        "FALLBACK"
+      ]
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "authority",
+        "matterId"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ALLOW",
+            "DENY",
+            "NEEDS_INPUT",
+            "BLOCKED"
+          ]
+        },
+        "authority": {
+          "const": "CaseBrief"
+        },
+        "matterId": {
+          "type": "string"
+        },
+        "decisionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "sleeve": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision",
+        "profile"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer"
+        },
+        "profile": {
+          "type": "string"
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "serviceProfile",
+        "semanticProfile",
+        "compilerBuildId",
+        "compilerExecution",
+        "frameworkExecution",
+        "h4CompatibilityQualification",
+        "neoUMGLineageQualification"
+      ],
+      "properties": {
+        "serviceProfile": {
+          "type": "string"
+        },
+        "semanticProfile": {
+          "type": "string"
+        },
+        "compilerBuildId": {
+          "type": "string"
+        },
+        "formalNeoUMGQualification": {
+          "type": "boolean",
+          "description": "Deprecated draft field. Use h4CompatibilityQualification and neoUMGLineageQualification."
+        },
+        "compileReceiptId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtimeSpecDigest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "traceId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "compilerExecution": {
+          "enum": [
+            "EXECUTED",
+            "NOT_EXECUTED"
+          ]
+        },
+        "frameworkExecution": {
+          "enum": [
+            "EXECUTED",
+            "NOT_EXECUTED"
+          ]
+        },
+        "h4CompatibilityQualification": {
+          "enum": [
+            "PASS",
+            "NOT_RUN",
+            "FAIL"
+          ]
+        },
+        "neoUMGLineageQualification": {
+          "enum": [
+            "NOT_RUN",
+            "PASS",
+            "FAIL"
+          ]
+        },
+        "runtimeHash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "traceDigest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frameworkRevisionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frameworkSemanticDigest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "planOnlyReceiptId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "planOnlyDigest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "acceptedFindings",
+        "quarantinedFindings",
+        "expectations",
+        "unresolvedItems"
+      ],
+      "properties": {
+        "acceptedFindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "findingId",
+              "category",
+              "statement",
+              "sourceRefs",
+              "confidence",
+              "reviewState"
+            ],
+            "properties": {
+              "findingId": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "statement": {
+                "type": "string"
+              },
+              "sourceRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "confidence": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "level",
+                  "basis"
+                ],
+                "properties": {
+                  "level": {
+                    "enum": [
+                      "HIGH",
+                      "MEDIUM",
+                      "LOW",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "basis": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "reviewState": {
+                "enum": [
+                  "CANDIDATE",
+                  "HUMAN_REVIEW_REQUIRED",
+                  "REVIEWED"
+                ]
+              },
+              "quarantineReason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "quarantinedFindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "findingId",
+              "category",
+              "statement",
+              "sourceRefs",
+              "confidence",
+              "reviewState"
+            ],
+            "properties": {
+              "findingId": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "statement": {
+                "type": "string"
+              },
+              "sourceRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "confidence": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "level",
+                  "basis"
+                ],
+                "properties": {
+                  "level": {
+                    "enum": [
+                      "HIGH",
+                      "MEDIUM",
+                      "LOW",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "basis": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "reviewState": {
+                "enum": [
+                  "CANDIDATE",
+                  "HUMAN_REVIEW_REQUIRED",
+                  "REVIEWED"
+                ]
+              },
+              "quarantineReason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "expectations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "expectationId",
+              "recordId",
+              "status",
+              "basisSourceIds"
+            ],
+            "properties": {
+              "expectationId": {
+                "type": "string"
+              },
+              "recordId": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "not_provided",
+                  "provided",
+                  "coverage_need",
+                  "resolved_by_human_review",
+                  "dismissed_by_human_review"
+                ]
+              },
+              "basisSourceIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "decisionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "unresolvedItems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dispatchCount",
+        "executed",
+        "proposed"
+      ],
+      "properties": {
+        "dispatchCount": {
+          "const": 0
+        },
+        "executed": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "proposed": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "auditEvents": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "synthetic",
+        "sourceIds"
+      ],
+      "properties": {
+        "synthetic": {
+          "type": "boolean"
+        },
+        "sourceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fixtureId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "error": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "message",
+            "retryable"
+          ],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "details": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    },
+    "contractRevision": {
+      "const": 2
+    }
+  }
+}
