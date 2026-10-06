@@ -115,7 +115,7 @@ console.log('PASS CRI export meaning/time/version and ambiguous/negative source 
 // Deployment URLs must invalidate assets changed by this pilot slice.
 const html=require('node:fs').readFileSync('index.html','utf8');
 assert.match(html,/styles\.css\?v=20261006a/);
-assert.match(html,/pilot-runtime\.js\?v=20261006a/);
+assert.match(html,/pilot-runtime\.js\?v=20261006b/);
 // Removal, persistence and reintroduction cannot restore stale review credit.
 const removedCase=boot(structuredClone(fixture.appState));
 removedCase.run('data.documents.forEach(d=>d.reviewed=true);ensurePilotFindings()');
@@ -135,3 +135,30 @@ assert.equal(resolveCase.run("data.issues.find(x=>x.id==='PF-TIMING').humanConfi
 assert.equal(resolveCase.run('score()'),71);
 assert.equal(resolveCase.run("workspace.events.filter(e=>e.action==='issue.status_changed').at(-1).details.humanConfirmed"),false);
 console.log('PASS PR4 regressions: asset versions, reintroduced-source review and resolution without confirmation.');
+// Removed IDs keep tombstones after reload; changed and identical returns lose stale credit.
+for(const changed of [false,true]){
+ const removed=boot(structuredClone(fixture.appState));
+ removed.run('data.documents.forEach(d=>d.reviewed=true);ensurePilotFindings();data.documents=data.documents.filter(d=>d.id!==\'S02\');ensurePilotFindings()');
+ const persisted=JSON.parse(removed.stored()).cases[fixture.appState.matter.id];
+ assert.equal(persisted.pilotSourceRevisions.S02,null);
+ const returned=boot(persisted);
+ const source={...structuredClone(fixture.appState.documents.find(d=>d.id==='S02')),reviewed:true};
+ if(changed)source.excerpt+=' Changed while absent';
+ returned.run('data.documents.push('+JSON.stringify(source)+');ensurePilotFindings()');
+ assert.equal(returned.run('data.documents.find(d=>d.id===\'S02\').reviewed'),false);
+ assert.equal(returned.run('pilotCRI().components.workControl.value'),92);
+ returned.run('ensurePilotFindings();ensurePilotFindings()');
+ assert.equal(returned.run('workspace.events.filter(e=>e.action===\'source.revision_changed\'&&e.target===\'S02\').length'),1);
+}
+// Unsupported resolution clears attention without confirming facts; legacy state is normalised.
+const unsupported=boot(structuredClone(fixture.appState));
+unsupported.run('data.documents.find(d=>d.id===\'S02\').excerpt=\'No sequencing support\';ensurePilotFindings()');
+unsupported.get('decisionReason').value='Close historical prompt because current support is unavailable';
+assert.equal(unsupported.run('saveIssueDecision({preventDefault(){}},\'PF-TIMING\',\'resolved\')'),true);
+assert.equal(unsupported.run('data.issues.find(x=>x.id===\'PF-TIMING\').humanConfirmed'),false);
+assert.equal(unsupported.run('pilotCRI().components.attentionControl.deductions.some(x=>x.id===\'PA-PF-TIMING\')'),false);
+assert.equal(unsupported.run('data.issues.find(x=>x.id===\'PF-TIMING\').decisionHistory.at(-1).humanConfirmed'),false);
+unsupported.run('data.issues.find(x=>x.id===\'PF-TIMING\').humanConfirmed=true;save()');
+const legacy=boot(JSON.parse(unsupported.stored()).cases[fixture.appState.matter.id]);
+assert.equal(legacy.run('data.issues.find(x=>x.id===\'PF-TIMING\').humanConfirmed'),false);
+console.log('PASS removed/reintroduced source review credit, unsupported resolution and legacy confirmation state.');

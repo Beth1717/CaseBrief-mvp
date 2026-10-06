@@ -55,6 +55,8 @@ function ensurePilotFindings(){
  const revisions=data.pilotSourceRevisions||{};
  // Keep revisions for removed IDs so reintroduced content must be reviewed again.
  const nextRevisions={...revisions};
+ const presentIds=new Set(data.documents.map(doc=>doc.id));
+ for(const id of Object.keys(revisions))if(!presentIds.has(id))nextRevisions[id]=null;
  for(const doc of data.documents){
   const revision=String(doc.excerpt||'');nextRevisions[doc.id]=revision;
   if(Object.hasOwn(revisions,doc.id)&&revisions[doc.id]!==revision){
@@ -73,7 +75,7 @@ function ensurePilotFindings(){
   const prior=existing.get(id),candidate=candidates.get(id),base=candidate||prior;
   const revision=pilotSourceRevision(base.sources);
   const changed=!!prior&&((prior.sourceRevision!==undefined&&prior.sourceRevision!==revision)||(!candidate&&prior.sourceActive!==false));
-  const row={...base,status:prior?.status||'open',humanConfirmed:prior?.humanConfirmed||false,decisionHistory:prior?.decisionHistory||[],needsSourceReview:prior?.needsSourceReview||false,sourceActive:!!candidate,sourceRevision:revision,citations:pilotCitations(base.sources),ruleset:PILOT_CRI_RULESET};
+  const row={...base,status:prior?.status||'open',humanConfirmed:prior?.status==='reviewed'&&!!candidate&&!!prior.humanConfirmed,decisionHistory:prior?.decisionHistory||[],needsSourceReview:prior?.needsSourceReview||false,sourceActive:!!candidate,sourceRevision:revision,citations:pilotCitations(base.sources),ruleset:PILOT_CRI_RULESET};
   if(changed){
    const transition={at:new Date().toISOString(),actor:systemActor,before:row.status,after:'open',reason:'Source changed or removed; human re-review required.',sources:base.sources,citations:row.citations,ruleset:PILOT_CRI_RULESET};
    row.status='open';row.humanConfirmed=false;row.needsSourceReview=true;row.decisionHistory=[...row.decisionHistory,transition];
