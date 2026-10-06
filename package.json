@@ -1,0 +1,12 @@
+{
+  "name": "casebrief-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Synthetic CaseBrief investor demo and local UMG adapter qualification",
+  "scripts": {
+    "start": "python3 -m http.server 8765 --bind 127.0.0.1",
+    "test:runtime": "node integration/tests/umg-runtime-rev2.cjs"
+  },
+  "dependencies": {"ajv": "8.20.0"},
+  "devDependencies": {"playwright": "1.62.1"}
+}

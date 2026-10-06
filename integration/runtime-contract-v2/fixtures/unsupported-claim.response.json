@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "casebrief.umg.record-consistency.response.v0.1-draft",
+  "contractRevision": 2,
+  "requestId": "req-unsupported_claim",
+  "correlationId": "corr-unsupported_claim",
+  "status": "SUCCEEDED",
+  "authorization": {
+    "status": "ALLOW",
+    "authority": "CaseBrief",
+    "matterId": "matter-001",
+    "decisionId": "auth-unsupported_claim"
+  },
+  "sleeve": {
+    "id": "SLV.CASEBRIEF.LEGALANALYSIS.v0.1",
+    "revision": 1,
+    "profile": "umg.project-lab.sleeve/1.0"
+  },
+  "runtime": {
+    "serviceProfile": "umg.framework.service.v0.1-rc.2",
+    "semanticProfile": "h4.compat.v0.1",
+    "compilerBuildId": "5f68942c834c7c70cd425f4e7788f170ad092eb5",
+    "compilerExecution": "EXECUTED",
+    "frameworkExecution": "EXECUTED",
+    "h4CompatibilityQualification": "PASS",
+    "neoUMGLineageQualification": "NOT_RUN",
+    "formalNeoUMGQualification": false,
+    "compileReceiptId": "compile-receipt_42dfa5a0c6f6120f2e96a1373b22ced84006fe5e686b364a9dc131c6e6bfab2c",
+    "runtimeSpecDigest": "92ec5f6f76af61906f014e5fbae293fb2fd334968a3279f8551b0c3f485a246a",
+    "traceId": "trace_e01a526ebc307f8c51bfce41c5e6a1bd525899a6178c525ee6e2d2f9104c1f1b",
+    "runtimeHash": "46b747e23af5dd3b66a91c310b79412a89b5bc02f13cd33c7046e181b22c257a",
+    "traceDigest": "e01a526ebc307f8c51bfce41c5e6a1bd525899a6178c525ee6e2d2f9104c1f1b",
+    "frameworkRevisionId": "rev_29d64134064cd99f23d9df4054d004465a1c27c8ad7f9432a96becfb05d2bd60",
+    "frameworkSemanticDigest": "23e157d11e9aa805f974310de5bb0b422e58c9f670ac0fc0bb6a3c149961754b",
+    "planOnlyReceiptId": null,
+    "planOnlyDigest": null
+  },
+  "result": {
+    "acceptedFindings": [],
+    "quarantinedFindings": [
+      {
+        "findingId": "probe-unsupported-1",
+        "category": "unsupported_assertion",
+        "statement": "Synthetic adversarial assertion with citation-looking metadata but no trusted support.",
+        "sourceRefs": [],
+        "confidence": {
+          "level": "UNKNOWN",
+          "basis": [
+            "candidate finding referenced source IDs outside the authorized request"
+          ]
+        },
+        "reviewState": "CANDIDATE",
+        "quarantineReason": "INVALID_CITATION_OR_SOURCE_REFERENCE"
+      }
+    ],
+    "expectations": [
+      {
+        "expectationId": "expectation-bc-1841-a",
+        "recordId": "BC-1841-A",
+        "status": "not_provided",
+        "basisSourceIds": [
+          "doc-1",
+          "doc-5",
+          "doc-8"
+        ],
+        "decisionRef": null
+      }
+    ],
+    "unresolvedItems": [
+      "Expected record BC-1841-A remains unresolved.",
+      "One or more candidate findings were quarantined because their source references were outside the authorized request."
+    ]
+  },
+  "effects": {
+    "dispatchCount": 0,
+    "executed": [],
+    "proposed": []
+  },
+  "auditEvents": [
+    {
+      "eventType": "framework.compile.bound",
+      "auditId": "audit-req-unsupported_claim",
+      "requestId": "req-unsupported_claim",
+      "compileReceiptId": "compile-receipt_42dfa5a0c6f6120f2e96a1373b22ced84006fe5e686b364a9dc131c6e6bfab2c",
+      "runtimeSpecDigest": "92ec5f6f76af61906f014e5fbae293fb2fd334968a3279f8551b0c3f485a246a",
+      "runtimeHash": "46b747e23af5dd3b66a91c310b79412a89b5bc02f13cd33c7046e181b22c257a",
+      "effectsDispatched": 0
+    },
+    {
+      "eventType": "casebrief.analysis.completed",
+      "auditId": "audit-req-unsupported_claim",
+      "matterId": "matter-001",
+      "acceptedFindingIds": [],
+      "quarantinedFindingIds": [
+        "probe-unsupported-1"
+      ],
+      "effectsDispatched": 0
+    }
+  ],
+  "provenance": {
+    "synthetic": true,
+    "sourceIds": [
+      "doc-1",
+      "doc-2",
+      "doc-5",
+      "doc-8"
+    ],
+    "fixtureId": "unsupported_claim"
+  },
+  "error": null
+}

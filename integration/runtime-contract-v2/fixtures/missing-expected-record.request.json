@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "casebrief.umg.record-consistency.request.v0.1-draft",
+  "requestId": "req-missing_expected_record",
+  "correlationId": "corr-missing_expected_record",
+  "syntheticOnly": true,
+  "mode": "READ_ONLY_ANALYSIS",
+  "hostContext": {
+    "host": "CaseBrief",
+    "tenantId": "synthetic-tenant",
+    "matterId": "matter-001",
+    "operation": "record_consistency_review",
+    "actor": {
+      "id": "demo-reviewer",
+      "type": "human",
+      "role": "case_owner_lead_attorney",
+      "verifiedByHost": true
+    },
+    "authorization": {
+      "decisionId": "auth-missing_expected_record",
+      "status": "ALLOW",
+      "scopes": [
+        "case_view",
+        "ai_use",
+        "review_decisions",
+        "audit_view"
+      ],
+      "authority": "CaseBrief",
+      "expiresAt": null,
+      "policyVersion": "synthetic-v1",
+      "decisionDigest": null
+    }
+  },
+  "sleeve": {
+    "id": "SLV.CASEBRIEF.LEGALANALYSIS.v0.1",
+    "revision": 1,
+    "profile": "umg.project-lab.sleeve/1.0",
+    "compilerCompatibility": "not-claimed"
+  },
+  "runtimeRequest": {
+    "semanticProfile": "h4.compat.v0.1",
+    "serviceProfile": "umg.framework.service.v0.1-rc.2",
+    "compilerBuildId": "5f68942c834c7c70cd425f4e7788f170ad092eb5"
+  },
+  "sources": [
+    {
+      "sourceId": "doc-1",
+      "kind": "police_report",
+      "locator": "synthetic:doc-1",
+      "extract": "Incident report records the stop at 22:14 and references BC-1841-A.",
+      "contentHash": null,
+      "reviewedByHost": true,
+      "matterId": "matter-001"
+    },
+    {
+      "sourceId": "doc-2",
+      "kind": "witness_statement",
+      "locator": "synthetic:doc-2",
+      "extract": "Witness reports the stop began around 21:55.",
+      "contentHash": null,
+      "reviewedByHost": true,
+      "matterId": "matter-001"
+    },
+    {
+      "sourceId": "doc-5",
+      "kind": "transcript",
+      "locator": "synthetic:doc-5",
+      "extract": "Defense requested preservation of video evidence.",
+      "contentHash": null,
+      "reviewedByHost": true,
+      "matterId": "matter-001"
+    },
+    {
+      "sourceId": "doc-8",
+      "kind": "correspondence",
+      "locator": "synthetic:doc-8",
+      "extract": "Discovery follow-up requests BC-1841-A.",
+      "contentHash": null,
+      "reviewedByHost": true,
+      "matterId": "matter-001"
+    }
+  ],
+  "expectedRecords": [
+    {
+      "expectationId": "expectation-bc-1841-a",
+      "recordId": "BC-1841-A",
+      "recordType": "body_camera_video",
+      "basisSourceIds": [
+        "doc-1",
+        "doc-5",
+        "doc-8"
+      ],
+      "hostDecisionRef": null
+    }
+  ],
+  "candidateFindings": [],
+  "constraints": {
+    "externalEffectsAllowed": false,
+    "requireCitations": true,
+    "requireHumanReview": true
+  },
+  "extensions": {
+    "harnessScenario": "missing_expected_record"
+  },
+  "contractRevision": 2,
+  "auditId": "audit-req-missing_expected_record"
+}

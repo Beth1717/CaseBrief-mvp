@@ -114,7 +114,7 @@ console.log('PASS CRI export meaning/time/version and ambiguous/negative source 
 
 // Deployment URLs must invalidate assets changed by this pilot slice.
 const html=require('node:fs').readFileSync('index.html','utf8');
-assert.match(html,/styles\.css\?v=20261006a/);
+assert.match(html,/styles\.css\?v=20261006-investor1/);
 assert.match(html,/pilot-runtime\.js\?v=20261006b/);
 // Removal, persistence and reintroduction cannot restore stale review credit.
 const removedCase=boot(structuredClone(fixture.appState));

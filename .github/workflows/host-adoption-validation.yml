@@ -21,7 +21,7 @@ jobs:
           node-version: '24'
       - name: Install matching Playwright and Chromium
         run: |
-          npm install --no-save --no-package-lock playwright@1.62.1
+          npm ci --ignore-scripts
           npx --no-install playwright install --with-deps chromium
       - name: Run all existing and remediation suites
         shell: bash
@@ -38,12 +38,15 @@ jobs:
           failed=0
           for suite in \
             tests/state.cjs \
+            tests/investor-demo.cjs \
+            tests/browser-investor-demo.cjs \
             tests/browser.cjs \
             tests/idaho-pretrial.cjs \
             tests/browser-idaho-pretrial.cjs \
             tests/pilot-findings-cri.cjs \
             tests/browser-pilot-findings-cri.cjs \
             integration/tests/umg-runtime-contract-v0.1.cjs \
+            integration/tests/umg-runtime-rev2.cjs \
             integration/tests/host-adoption.cjs \
             integration/tests/browser-host-adoption.cjs \
             integration/tests/casebrief-sleeve-contract.cjs \

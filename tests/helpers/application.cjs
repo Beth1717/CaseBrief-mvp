@@ -7,7 +7,7 @@ module.exports = function bootApplication(appState) {
   const elements = new Map(), memory = new Map(), session = new Map();
   const classList = {toggle(){}, add(){}, remove(){}, contains(){return false}};
   const get = id => {
-    if (!elements.has(id)) elements.set(id, {innerHTML:'', textContent:'', value:'',
+    if (!elements.has(id)) elements.set(id, {innerHTML:'', textContent:'', value:'', insertAdjacentHTML(_position,html){this.innerHTML=html+this.innerHTML},
       classList, hidden:false, isConnected:true, focus(){}, before(){}, appendChild(){}, click(){}});
     return elements.get(id);
   };

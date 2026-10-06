@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:casebrief:umg:record-consistency:request:v0.1-draft",
+  "title": "CaseBrief to UMG Record Consistency Review request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "auditId",
+    "contractRevision",
+    "requestId",
+    "correlationId",
+    "syntheticOnly",
+    "mode",
+    "hostContext",
+    "sleeve",
+    "sources",
+    "expectedRecords",
+    "constraints"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "casebrief.umg.record-consistency.request.v0.1-draft"
+    },
+    "requestId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "syntheticOnly": {
+      "type": "boolean"
+    },
+    "mode": {
+      "enum": [
+        "READ_ONLY_ANALYSIS",
+        "PLAN_ONLY"
+      ]
+    },
+    "hostContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host",
+        "tenantId",
+        "matterId",
+        "operation",
+        "actor",
+        "authorization"
+      ],
+      "properties": {
+        "host": {
+          "const": "CaseBrief"
+        },
+        "tenantId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "matterId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation": {
+          "const": "record_consistency_review"
+        },
+        "actor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "role",
+            "verifiedByHost"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "type": {
+              "enum": [
+                "human",
+                "system"
+              ]
+            },
+            "role": {
+              "enum": [
+                "case_owner_lead_attorney",
+                "authorized_co_counsel",
+                "delegated_staff_or_investigator",
+                "defendant_family_read_only",
+                "casebrief_system"
+              ]
+            },
+            "verifiedByHost": {
+              "const": true
+            }
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "decisionId",
+            "status",
+            "scopes",
+            "authority"
+          ],
+          "properties": {
+            "decisionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "enum": [
+                "ALLOW",
+                "DENY",
+                "NEEDS_INPUT",
+                "BLOCKED"
+              ]
+            },
+            "scopes": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "case_view",
+                  "privileged_work_product",
+                  "ai_use",
+                  "review_decisions",
+                  "authority_research",
+                  "audit_view"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "authority": {
+              "const": "CaseBrief"
+            },
+            "expiresAt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "policyVersion": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "decisionDigest": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "sleeve": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision",
+        "profile"
+      ],
+      "properties": {
+        "id": {
+          "const": "SLV.CASEBRIEF.LEGALANALYSIS.v0.1"
+        },
+        "revision": {
+          "const": 1
+        },
+        "profile": {
+          "const": "umg.project-lab.sleeve/1.0"
+        },
+        "compilerCompatibility": {
+          "type": "string"
+        }
+      }
+    },
+    "runtimeRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "semanticProfile": {
+          "enum": [
+            "h4.compat.v0.1",
+            "neoumg.lineage.single-parent-exact-scope.v0.1"
+          ]
+        },
+        "serviceProfile": {
+          "type": "string"
+        },
+        "compilerBuildId": {
+          "type": "string"
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceId",
+          "matterId",
+          "kind",
+          "locator",
+          "extract"
+        ],
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "extract": {
+            "type": "string"
+          },
+          "contentHash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reviewedByHost": {
+            "type": "boolean"
+          },
+          "matterId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "expectedRecords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectationId",
+          "recordId",
+          "recordType",
+          "basisSourceIds"
+        ],
+        "properties": {
+          "expectationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recordId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recordType": {
+            "type": "string",
+            "minLength": 1
+          },
+          "basisSourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "hostDecisionRef": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "candidateFindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "findingId",
+          "category",
+          "statement",
+          "sourceIds"
+        ],
+        "properties": {
+          "findingId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "externalEffectsAllowed",
+        "requireCitations",
+        "requireHumanReview"
+      ],
+      "properties": {
+        "externalEffectsAllowed": {
+          "const": false
+        },
+        "requireCitations": {
+          "const": true
+        },
+        "requireHumanReview": {
+          "const": true
+        }
+      }
+    },
+    "extensions": {
+      "type": "object"
+    },
+    "contractRevision": {
+      "const": 2
+    },
+    "auditId": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "hostContext": {
+            "properties": {
+              "authorization": {
+                "properties": {
+                  "status": {
+                    "const": "DENY"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "authorization"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "sources": {
+            "maxItems": 0
+          },
+          "expectedRecords": {
+            "maxItems": 0
+          },
+          "candidateFindings": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}
