@@ -53,7 +53,8 @@ function ensurePilotFindings(){
  if(!isIdahoPilot())return [];
  // Reviewed content is revision-bound: editing a source creates a new review task.
  const revisions=data.pilotSourceRevisions||{};
- const nextRevisions={};
+ // Keep revisions for removed IDs so reintroduced content must be reviewed again.
+ const nextRevisions={...revisions};
  for(const doc of data.documents){
   const revision=String(doc.excerpt||'');nextRevisions[doc.id]=revision;
   if(Object.hasOwn(revisions,doc.id)&&revisions[doc.id]!==revision){
@@ -124,7 +125,7 @@ saveIssueDecision=function(e,id,status){
  if(status==='reviewed'&&!x.sourceActive){
   record('finding.confirmation_blocked',id,{reason:'Current source support is unavailable; dismiss or resolve with a reason instead.',ruleset:PILOT_CRI_RULESET},'denied');return false;
  }
- x.status=status;x.humanConfirmed=status==='reviewed'||status==='resolved';x.needsSourceReview=false;
+ x.status=status;x.humanConfirmed=status==='reviewed';x.needsSourceReview=false;
  const transition={at:new Date().toISOString(),actor:currentIdentity(),before,after:status,reason,sources:x.sources,citations:x.citations,ruleset:PILOT_CRI_RULESET,humanConfirmed:x.humanConfirmed,criBefore,criAfter:pilotCRI().score};
  // Recalculation replaces finding objects; attach history to the current persisted row.
  data.issues.find(i=>i.id===id).decisionHistory.push(transition);

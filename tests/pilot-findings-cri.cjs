@@ -111,3 +111,27 @@ const negativeCase=boot(negative);
 assert.equal(negativeCase.run('data.issues.length'),0,'ambiguous time, unavailable ownership corroboration and nonduplicate records produce no candidate');
 assert.equal(negativeCase.run('score()'),78,'absence of supported findings does not make missing records or unreviewed work disappear');
 console.log('PASS CRI export meaning/time/version and ambiguous/negative source controls.');
+
+// Deployment URLs must invalidate assets changed by this pilot slice.
+const html=require('node:fs').readFileSync('index.html','utf8');
+assert.match(html,/styles\.css\?v=20261006a/);
+assert.match(html,/pilot-runtime\.js\?v=20261006a/);
+// Removal, persistence and reintroduction cannot restore stale review credit.
+const removedCase=boot(structuredClone(fixture.appState));
+removedCase.run('data.documents.forEach(d=>d.reviewed=true);ensurePilotFindings()');
+const removed=plain(removedCase.run("data.documents.find(d=>d.id==='S02')"));
+removedCase.run("data.documents=data.documents.filter(d=>d.id!=='S02');ensurePilotFindings()");
+const returnedCase=boot(JSON.parse(removedCase.stored()).cases[fixture.appState.matter.id]);
+removed.excerpt+=' Changed while absent';
+returnedCase.run('data.documents.push('+JSON.stringify(removed)+');ensurePilotFindings()');
+assert.equal(returnedCase.run("data.documents.find(d=>d.id==='S02').reviewed"),false);
+assert.equal(returnedCase.run('pilotCRI().components.workControl.value'),92);
+// Resolution clears attention work without claiming factual confirmation.
+const resolveCase=boot(structuredClone(fixture.appState));
+resolveCase.run("data.documents.find(d=>d.id==='S02').excerpt='No sequence';ensurePilotFindings()");
+resolveCase.get('decisionReason').value='Current evidence no longer supports this finding';
+assert.equal(resolveCase.run("saveIssueDecision({preventDefault(){}},'PF-TIMING','resolved')"),true);
+assert.equal(resolveCase.run("data.issues.find(x=>x.id==='PF-TIMING').humanConfirmed"),false);
+assert.equal(resolveCase.run('score()'),71);
+assert.equal(resolveCase.run("workspace.events.filter(e=>e.action==='issue.status_changed').at(-1).details.humanConfirmed"),false);
+console.log('PASS PR4 regressions: asset versions, reintroduced-source review and resolution without confirmation.');
