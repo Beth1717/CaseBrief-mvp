@@ -29,7 +29,7 @@ function pilotCatalogue(){
  return rows;
 }
 const PILOT_CRI_RULESET='casebrief.cri.idaho-pretrial.v0.2';
-const PILOT_CRI_EXPLANATION='The Case Readiness Index shows how complete, organised and ready for review this case is, based on the records and unresolved work in CaseBrief. It does not predict a legal outcome.';
+const PILOT_CRI_EXPLANATION='The Case Readiness Index measures operational readiness: how complete, organised and ready for review this case is, based on the records and unresolved work in CaseBrief. It does not predict a legal outcome.';
 function pilotCitations(ids){return ids.map(id=>({sourceId:id,start:0,end:pilotSourceText(id).length,quote:pilotSourceText(id)}))}
 function pilotSourceRevision(ids){return JSON.stringify(ids.map(id=>[id,sourceById(id)?.excerpt??null]))}
 function pilotExpectationLedger(){
