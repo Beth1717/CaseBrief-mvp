@@ -41,6 +41,8 @@ jobs:
             tests/browser.cjs \
             tests/idaho-pretrial.cjs \
             tests/browser-idaho-pretrial.cjs \
+            tests/pilot-findings-cri.cjs \
+            tests/browser-pilot-findings-cri.cjs \
             integration/tests/umg-runtime-contract-v0.1.cjs \
             integration/tests/host-adoption.cjs \
             integration/tests/browser-host-adoption.cjs \

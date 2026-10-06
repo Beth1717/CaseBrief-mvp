@@ -1,0 +1,164 @@
+const assert=require('node:assert/strict');
+const fixture=require('../integration/fixtures/idaho-pretrial.json');
+const boot=require('./helpers/application.cjs');
+const {run,get,stored}=boot(structuredClone(fixture.appState));
+const plain=x=>JSON.parse(JSON.stringify(x));
+const decide=(id,status,reason='Reviewed cited source passages')=>{
+ get('decisionReason').value=reason;
+ return run(`saveIssueDecision({preventDefault(){}},${JSON.stringify(id)},${JSON.stringify(status)})`);
+};
+const initial=plain(run('pilotCRI()'));
+assert.equal(initial.score,63);
+assert.deepEqual(Object.values(initial.components).map(c=>c.weight),[.4,.35,.25]);
+assert.equal(initial.score,Math.round(Object.values(initial.components).reduce((n,c)=>n+c.contribution,0)));
+assert.equal(initial.components.workControl.deductions.length,5,'duplicate inventory is one source-review task');
+assert.equal(new Set(initial.components.attentionControl.deductions.map(x=>x.id)).size,3);
+assert.equal(decide('PF-TIMING','reviewed'),true);
+assert.equal(run('score()'),63,'confirmation cannot charge again or clear an unresolved finding');
+assert.equal(run("data.issues.find(x=>x.id==='PF-TIMING').humanConfirmed"),true);
+assert.equal(decide('PF-TIMING','dismissed'),true);
+assert.equal(run('score()'),71);
+assert.equal(run('pilotCRI().components.workControl.value'),60,'disposition cannot complete source-review tasks');
+assert.equal(decide('PF-TIMING','open'),true);
+assert.equal(run('score()'),63);
+assert.equal(decide('PF-OWNERSHIP','resolved'),true);
+assert.equal(run('score()'),68);
+assert.equal(run('pilotExpectationLedger().filter(x=>x.status===\'not_provided\').length'),2,'resolving findings never supplies missing records');
+assert.equal(decide('PF-OWNERSHIP','dismissed','  '),false);
+assert.equal(decide('PF-OWNERSHIP','nonsense'),false);
+run("activeSecurityProfile='client'");
+assert.equal(decide('PF-TIMING','dismissed'),false,'direct decision handler must enforce permissions');
+assert.equal(run('openCRI()'),false);
+assert.doesNotMatch(run('dashboard()'),/different search\/consent|Open review queue/);
+run("activeSecurityProfile='attorney'");
+const count=run("data.issues.find(x=>x.id==='PF-TIMING').decisionHistory.length");
+run("data.documents.find(x=>x.id==='S02').excerpt+=' Clock calibration remains pending.';ensurePilotFindings()");
+assert.equal(run("data.issues.find(x=>x.id==='PF-TIMING').humanConfirmed"),false);
+assert.equal(run("data.issues.find(x=>x.id==='PF-TIMING').needsSourceReview"),true);
+run('ensurePilotFindings();ensurePilotFindings()');
+assert.equal(run("data.issues.find(x=>x.id==='PF-TIMING').decisionHistory.length"),count+1,'source change recorded once');
+assert.equal(run("data.issues.find(x=>x.id==='PF-TIMING').needsSourceReview"),true);
+run("data.documents.find(x=>x.id==='S02').excerpt='No search sequence established.';ensurePilotFindings()");
+assert.equal(run("data.issues.find(x=>x.id==='PF-TIMING').sourceActive"),false);
+assert.equal(run("data.issues.filter(x=>x.id==='PF-TIMING').length"),1,'no silent deletion of historical finding');
+const event=plain(run("workspace.events.find(x=>x.action==='issue.status_changed')"));
+assert.ok(event.actor.id&&event.at&&event.details.reason&&event.details.ruleset);
+assert.equal(event.details.citations.length,3);
+for(const citation of event.details.citations){assert.ok(citation.quote);assert.equal(citation.end-citation.start,citation.quote.length)}
+const reload=boot(JSON.parse(stored()).cases[fixture.appState.matter.id]);
+assert.ok(reload.run("data.issues.find(x=>x.id==='PF-TIMING').decisionHistory.length")>=count+2);
+// Free-text status is not canonical proof of supply (including 'custody missing').
+run("data.evidence[0].status='custody missing';data.evidence[1].status='result received'");
+assert.equal(run('pilotExpectationLedger().filter(x=>x.status===\'not_provided\').length'),2);
+run("data.documents.push({id:'S07',recordId:'LAB-E02',excerpt:'SYNTHETIC laboratory result',reviewed:false})");
+assert.equal(run("pilotExpectationLedger()[0].status"),'provided');
+assert.equal(run('pilotCRI().components.completeness.value'),90);
+assert.equal(run("setPilotExpectationApplicability('PE-CUSTODY-E01',true,'Not applicable in this synthetic test')"),true);
+assert.equal(run('pilotCRI().applicableExpectations'),1);
+assert.equal(run('pilotCRI().components.completeness.value'),100);
+assert.equal(run("setPilotExpectationApplicability('PE-LAB-E02',true,'Exclude final expectation')"),true);
+assert.equal(run('score()'),null,'zero applicable denominator is insufficient data');
+const empty=boot({...structuredClone(fixture.appState),documents:[]});
+assert.equal(empty.run('score()'),null);
+assert.match(empty.run('dashboard()'),/Insufficient data/);
+assert.doesNotMatch(empty.run('dashboard()'),/100%/);
+// Related candidate factors never escape the attention budget.
+run("data.documents=JSON.parse("+JSON.stringify(JSON.stringify(fixture.appState.documents))+");data.pilotExpectationDecisions={};ensurePilotFindings()");
+run("data.issues.push({...data.issues[0],id:'PF-TIMING',weight:999})");
+assert.ok(run('pilotCRI().components.attentionControl.value')>=0);
+run('openCRI()');
+assert.match(get('detailRoot').innerHTML,/Calculated .*Ruleset/);
+assert.match(get('detailRoot').innerHTML,/Unrounded total/);
+console.log('PASS pilot finding lifecycle / CRI: audit, citations, source changes, canonical provision, denominator, caps, confirmation, permissions and persistence.');
+// Reviewed source content loses review credit on revision, while unaffected records stay reviewed.
+const revisionCase=boot(structuredClone(fixture.appState));
+revisionCase.run('data.documents.forEach(d=>d.reviewed=true);save()');
+assert.equal(revisionCase.run('pilotCRI().components.workControl.value'),100);
+revisionCase.run("data.documents.find(d=>d.id==='S02').excerpt+=' Revision';ensurePilotFindings()");
+assert.equal(revisionCase.run("data.documents.find(d=>d.id==='S02').reviewed"),false);
+assert.equal(revisionCase.run("data.documents.find(d=>d.id==='S01').reviewed"),true);
+assert.equal(revisionCase.run('pilotCRI().components.workControl.value'),92);
+assert.equal(revisionCase.run("workspace.events.filter(e=>e.action==='source.revision_changed').length"),1);
+revisionCase.run('ensurePilotFindings()');
+assert.equal(revisionCase.run("workspace.events.filter(e=>e.action==='source.revision_changed').length"),1);
+// Missing support cannot be confirmed as a current finding.
+get('decisionReason').value='Try to confirm unsupported timing';
+run("data.documents.find(x=>x.id==='S02').excerpt='No sequence information';ensurePilotFindings()");
+assert.equal(run("saveIssueDecision({preventDefault(){}},'PF-TIMING','reviewed')"),false);
+assert.equal(run("data.issues.find(x=>x.id==='PF-TIMING').humanConfirmed"),false);
+// The applicability workflow is usable without scripting.
+run("data.pilotExpectationDecisions={};beginPilotExpectationDecision('PE-LAB-E02',true)");
+assert.match(get('detailRoot').innerHTML,/Reason \(required\)/);
+get('expectationReason').value='Laboratory expectation inapplicable for this synthetic scenario';
+assert.equal(run("savePilotExpectationDecision({preventDefault(){}},'PE-LAB-E02',true)"),true);
+assert.equal(run('pilotCRI().applicableExpectations'),1);
+assert.match(get('detailRoot').innerHTML,/Restore applicability/);
+run("activeSecurityProfile='client'");
+assert.equal(run("beginPilotExpectationDecision('PE-LAB-E02',false)"),false);
+console.log('PASS reviewed-source invalidation, blocked unsupported confirmation and authorised applicability form.');
+run("activeSecurityProfile='attorney'");
+const snapshot=plain(run('pilotCRIExportSnapshot()'));
+assert.ok(snapshot.calculatedAt&&snapshot.ruleset);
+assert.match(snapshot.meaning,/not a prediction of legal outcome/);
+assert.match(snapshot.explanation,/does not predict a legal outcome/);
+run("activeSecurityProfile='client'");
+assert.equal(run('pilotCRIExportSnapshot()'),null);
+const negative=structuredClone(fixture.appState);
+negative.documents.find(d=>d.id==='S02').excerpt='21:12:10 Vale: You can look in the car.';
+negative.documents.find(d=>d.id==='S03').excerpt='I cannot establish the order of events.';
+negative.documents.find(d=>d.id==='S05').excerpt='Different inventory record.';
+const negativeCase=boot(negative);
+assert.equal(negativeCase.run('data.issues.length'),0,'ambiguous time, unavailable ownership corroboration and nonduplicate records produce no candidate');
+assert.equal(negativeCase.run('score()'),78,'absence of supported findings does not make missing records or unreviewed work disappear');
+console.log('PASS CRI export meaning/time/version and ambiguous/negative source controls.');
+
+// Deployment URLs must invalidate assets changed by this pilot slice.
+const html=require('node:fs').readFileSync('index.html','utf8');
+assert.match(html,/styles\.css\?v=20261006a/);
+assert.match(html,/pilot-runtime\.js\?v=20261006b/);
+// Removal, persistence and reintroduction cannot restore stale review credit.
+const removedCase=boot(structuredClone(fixture.appState));
+removedCase.run('data.documents.forEach(d=>d.reviewed=true);ensurePilotFindings()');
+const removed=plain(removedCase.run("data.documents.find(d=>d.id==='S02')"));
+removedCase.run("data.documents=data.documents.filter(d=>d.id!=='S02');ensurePilotFindings()");
+const returnedCase=boot(JSON.parse(removedCase.stored()).cases[fixture.appState.matter.id]);
+removed.excerpt+=' Changed while absent';
+returnedCase.run('data.documents.push('+JSON.stringify(removed)+');ensurePilotFindings()');
+assert.equal(returnedCase.run("data.documents.find(d=>d.id==='S02').reviewed"),false);
+assert.equal(returnedCase.run('pilotCRI().components.workControl.value'),92);
+// Resolution clears attention work without claiming factual confirmation.
+const resolveCase=boot(structuredClone(fixture.appState));
+resolveCase.run("data.documents.find(d=>d.id==='S02').excerpt='No sequence';ensurePilotFindings()");
+resolveCase.get('decisionReason').value='Current evidence no longer supports this finding';
+assert.equal(resolveCase.run("saveIssueDecision({preventDefault(){}},'PF-TIMING','resolved')"),true);
+assert.equal(resolveCase.run("data.issues.find(x=>x.id==='PF-TIMING').humanConfirmed"),false);
+assert.equal(resolveCase.run('score()'),71);
+assert.equal(resolveCase.run("workspace.events.filter(e=>e.action==='issue.status_changed').at(-1).details.humanConfirmed"),false);
+console.log('PASS PR4 regressions: asset versions, reintroduced-source review and resolution without confirmation.');
+// Removed IDs keep tombstones after reload; changed and identical returns lose stale credit.
+for(const changed of [false,true]){
+ const removed=boot(structuredClone(fixture.appState));
+ removed.run('data.documents.forEach(d=>d.reviewed=true);ensurePilotFindings();data.documents=data.documents.filter(d=>d.id!==\'S02\');ensurePilotFindings()');
+ const persisted=JSON.parse(removed.stored()).cases[fixture.appState.matter.id];
+ assert.equal(persisted.pilotSourceRevisions.S02,null);
+ const returned=boot(persisted);
+ const source={...structuredClone(fixture.appState.documents.find(d=>d.id==='S02')),reviewed:true};
+ if(changed)source.excerpt+=' Changed while absent';
+ returned.run('data.documents.push('+JSON.stringify(source)+');ensurePilotFindings()');
+ assert.equal(returned.run('data.documents.find(d=>d.id===\'S02\').reviewed'),false);
+ assert.equal(returned.run('pilotCRI().components.workControl.value'),92);
+ returned.run('ensurePilotFindings();ensurePilotFindings()');
+ assert.equal(returned.run('workspace.events.filter(e=>e.action===\'source.revision_changed\'&&e.target===\'S02\').length'),1);
+}
+// Unsupported resolution clears attention without confirming facts; legacy state is normalised.
+const unsupported=boot(structuredClone(fixture.appState));
+unsupported.run('data.documents.find(d=>d.id===\'S02\').excerpt=\'No sequencing support\';ensurePilotFindings()');
+unsupported.get('decisionReason').value='Close historical prompt because current support is unavailable';
+assert.equal(unsupported.run('saveIssueDecision({preventDefault(){}},\'PF-TIMING\',\'resolved\')'),true);
+assert.equal(unsupported.run('data.issues.find(x=>x.id===\'PF-TIMING\').humanConfirmed'),false);
+assert.equal(unsupported.run('pilotCRI().components.attentionControl.deductions.some(x=>x.id===\'PA-PF-TIMING\')'),false);
+assert.equal(unsupported.run('data.issues.find(x=>x.id===\'PF-TIMING\').decisionHistory.at(-1).humanConfirmed'),false);
+unsupported.run('data.issues.find(x=>x.id===\'PF-TIMING\').humanConfirmed=true;save()');
+const legacy=boot(JSON.parse(unsupported.stored()).cases[fixture.appState.matter.id]);
+assert.equal(legacy.run('data.issues.find(x=>x.id===\'PF-TIMING\').humanConfirmed'),false);
+console.log('PASS removed/reintroduced source review credit, unsupported resolution and legacy confirmation state.');
