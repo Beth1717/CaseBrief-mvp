@@ -51,3 +51,19 @@ assert.ok(JSON.parse(stored()).events.length>before);
 assert.equal(run('Object.keys(workspace.cases).length'),3);
 assert.match(fs.readFileSync('index.html','utf8'),/investor-demo\.js\?v=/);
 console.log('PASS investor demo: fixture parity, entry, tour, permissions, targeted sources, internal memo, restricted release, revocation, lock/privacy and scoped reset with history retained.');
+
+const guarded=require('../integration/tests/helpers/host.cjs')();
+for(const m of fs.readFileSync('index.html','utf8').matchAll(/<script src="([^"]+)"/g)){
+ const file=m[1].split('?')[0];
+ if(!['seed.js','security.js','core.js','views-system.js','integration/host-controls.js'].includes(file))guarded.run(fs.readFileSync(file,'utf8'));
+}
+const guardedBefore=guarded.run('JSON.stringify(workspace.cases)');
+for(const authorizer of [null,'undefined','()=>false','()=>{throw new Error("unavailable")}']){
+ if(authorizer)guarded.run('caseBriefHostApi.authorizeMatter='+authorizer);
+ assert.equal(guarded.run('openInvestorPilot()'),false);
+ assert.equal(guarded.run('startInvestorTour()'),false);
+ assert.equal(guarded.run('JSON.stringify(workspace.cases)'),guardedBefore);
+ assert.equal(guarded.run('data.matter.id'),'matter-001');
+ assert.equal(guarded.run('investorStep'),null);
+}
+console.log('PASS guarded pilot entry: no inaccessible insertion or tour on absent, denied or throwing authorization.');
