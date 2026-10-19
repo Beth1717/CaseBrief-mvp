@@ -72,6 +72,15 @@ const {chromium}=require('playwright');
   await page.selectOption('#securityRole','client');
   await page.evaluate(()=>{current='drafting';render()});
   assert.doesNotMatch(await page.locator('#app').innerText(),/Generate internal review memo|Saved drafts/);
+  await page.goto('http://127.0.0.1:8765/integration/umg-host-adoption.html');
+  await page.getByText('guarded host controls active',{exact:true}).waitFor();
+  const frame=page.frames().find(f=>f.url().endsWith('/index.html'));
+  assert.deepEqual(await frame.evaluate(()=>{
+   delete workspace.cases[PILOT_MATTER_ID];
+   const before=JSON.stringify(workspace.cases),active=data.matter.id;
+   const opened=openInvestorPilot(),started=startInvestorTour();
+   return {opened,started,unchanged:before===JSON.stringify(workspace.cases),activeUnchanged:active===data.matter.id,step:investorStep};
+  }),{opened:false,started:false,unchanged:true,activeUnchanged:true,step:null});
   assert.deepEqual(errors,[]);
   console.log('PASS browser investor walkthrough: source inspection, human confirmation, targeted assistant, memo versioning, family release/revocation, cancelled/confirmed reset, reload, mobile and role protection.');
  }finally{await browser.close()}

@@ -14,6 +14,18 @@ for(const mutate of [
 for(const mutate of [
  r=>r.contractRevision=1,r=>r.requestId='different',r=>r.correlationId='different',r=>r.authorization.matterId='other',r=>r.authorization.decisionId='other',r=>r.sleeve.revision=9,r=>r.status='UNKNOWN',r=>r.effects.dispatchCount=1,r=>r.effects.executed=[{}],r=>r.result.acceptedFindings[0].sourceRefs=['unknown'],r=>r.result.acceptedFindings[0].sourceRefs=[],r=>r.result.acceptedFindings[0].reviewState='REVIEWED',r=>r.provenance.sourceIds=['unknown'],r=>r.auditEvents=[{context:{privateReasoning:'secret'}}],r=>r.result.expectations[0].recordId='other',r=>r.result.expectations[0].basisSourceIds=['unknown'],r=>{r.result.expectations[0].status='resolved_by_human_review';r.result.expectations[0].decisionRef='invented'},r=>r.runtime.runtimeHash=null,r=>r.status='DENIED',r=>r.provenance.synthetic=false
 ]){const bad=structuredClone(response);mutate(bad);assert.equal(api.validateResponse(bad,request).valid,false)}
+// Bind authorization status even for otherwise valid empty fallback responses.
+for(const req of [request,denied]){
+ const bad=api.localFallback(req,'TEST','Local fallback');
+ bad.authorization.status=req.hostContext.authorization.status==='ALLOW'?'DENY':'ALLOW';
+ assert.ok(api.validateResponse(bad,req).errors.includes('authorization status mismatch'));
+}
+for(const key of ['reasoning','chain-of-thought','CHAIN_OF_THOUGHT','private-reasoning','Hidden Reasoning']){
+ const badRequest=structuredClone(request);badRequest.runtimeRequest={nested:[{[key]:'short'}]};
+ assert.equal(api.validateRequest(badRequest).valid,false,key);
+ const badResponse=structuredClone(response);badResponse.auditEvents=[{context:{nested:[{[key]:'short'}]}}];
+ assert.ok(api.validateResponse(badResponse,request).errors.includes('private reasoning payload'),key);
+}
 assert.equal(api.validateResponse(api.localFallback(request,'TEST','Local fallback'),request).valid,true);
 assert.equal(api.validateResponse(api.localFallback(denied,'TEST','Local fallback'),denied).valid,true);
 (async()=>{

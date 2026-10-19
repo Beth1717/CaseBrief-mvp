@@ -7,10 +7,10 @@ const requestSchema=require('./runtime-contract-v2/schemas/record-consistency-re
 const responseSchema=require('./runtime-contract-v2/schemas/record-consistency-response.schema.json');
 const requestShape=ajv.compile(requestSchema),responseShape=ajv.compile(responseSchema);
 const clone=v=>structuredClone(v);
-const forbidden=new Set(['chainofthought','privatechainofthought','privatereasoning','hiddenreasoning','rawchainofthought']);
+const forbidden=new Set(['reasoning','chainofthought','privatechainofthought','privatereasoning','hiddenreasoning','rawchainofthought']);
 function hasPrivateReasoning(value){
  if(!value||typeof value!=='object')return false;
- return Object.entries(value).some(([key,v])=>forbidden.has(key.replaceAll('_','').toLowerCase())||hasPrivateReasoning(v));
+ return Object.entries(value).some(([key,v])=>forbidden.has(key.replace(/[-_\s]/g,'').toLowerCase())||hasPrivateReasoning(v));
 }
 function shapeErrors(validator,value){return validator(value)?[]:validator.errors.map(e=>`${e.instancePath||'/'} ${e.message}`)}
 function validateRequest(request){
@@ -47,6 +47,7 @@ function validateResponse(response,request){
  if(response.requestId!==request.requestId||response.correlationId!==request.correlationId)errors.push('invocation identity mismatch');
  if(response.authorization.matterId!==request.hostContext.matterId)errors.push('response matter mismatch');
  if(response.authorization.decisionId!==request.hostContext.authorization.decisionId)errors.push('authorization decision mismatch');
+ if(response.authorization.status!==request.hostContext.authorization.status)errors.push('authorization status mismatch');
  if(response.sleeve.id!==request.sleeve.id||response.sleeve.revision!==request.sleeve.revision||response.sleeve.profile!==request.sleeve.profile)errors.push('sleeve identity mismatch');
  if(response.provenance.synthetic!==true)errors.push('non-synthetic response');
  if(hasPrivateReasoning(response))errors.push('private reasoning payload');

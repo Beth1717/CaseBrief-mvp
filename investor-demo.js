@@ -15,6 +15,9 @@ function investorActionAllowed(permission='case_view',target='presentation'){
 }
 function openInvestorPilot(){
  if(!investorActionAllowed('review_decisions','demo:pilot'))return false;
+ if(guardedAdoption){
+  try{if(caseBriefHostApi.authorizeMatter(caseBriefHostApi.actor,PILOT_MATTER_ID)!==true)return false}catch{return false}
+ }
  if(!workspace.cases[PILOT_MATTER_ID])workspace.cases[PILOT_MATTER_ID]=structuredClone(INVESTOR_PILOT_SEED);
  switchCase(PILOT_MATTER_ID);
  if(!isIdahoPilot())return false;
