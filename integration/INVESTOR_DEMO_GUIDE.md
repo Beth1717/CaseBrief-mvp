@@ -10,13 +10,14 @@ The product hypothesis is that organising records and outstanding work around re
 
 ## Launch the investor build
 
-This build includes the reviewed pilot lifecycle from merged PR #4 and the investor-demonstration changes. GitHub Pages reflects these features only after the investor changes reach its publishing source and deployment finishes.
+The merged baseline is PR #8 at `bf2f3a6d41d0cc9b10ea663ac58884ab6bca1fc9` (source head `8a3d30692490e0efadb0b596d0520a71069cc54a`). This follow-up adds a review receipt and readiness pack. A branch is not live on GitHub Pages until its publishing source includes it and deployment succeeds.
 
 From an existing repository checkout:
 
 ```bash
 git fetch origin
-git switch investor/demo-readiness
+git switch feature/pilot-review-readiness
+git pull --ff-only
 npm ci --ignore-scripts
 npm start
 ```
@@ -70,3 +71,9 @@ Use only synthetic records. Rehearse the seven steps, verify the role and 63% ba
 ## Updated previews
 
 A local preview shows this branch immediately after fetching/checking it out and restarting the server. The GitHub Pages preview updates only after the intended changes reach its configured publishing source and deployment finishes. Do not describe a PR branch as already live on Pages. Asset version strings have been refreshed for changed/new browser assets.
+
+## Review handoff and evaluation
+
+At the History step, choose **Export review receipt** and confirm. The JSON joins indexed source passages, finding state, human decision history, matching audit event IDs, missing-record expectations and CRI. Changed sources invalidate confirmation before export. Unrelated attorney notes are excluded. The receipt remains mutable and unauthenticated.
+
+See [readiness pack](../readiness/README.md) for trust boundaries, pilot measurement and the remaining work.
