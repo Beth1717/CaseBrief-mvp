@@ -1,0 +1,32 @@
+const assert=require('node:assert/strict');
+const boot=require('./helpers/application.cjs');
+const fixture=require('../integration/fixtures/idaho-pretrial.json');
+const app=boot(structuredClone(fixture.appState)),{run,get}=app;
+let receipt=run('pilotReviewReceipt()');
+assert.equal(receipt.cri.score,63);
+assert.equal(receipt.syntheticOnly,true);
+assert.equal(receipt.findings.length,3);
+assert.ok(receipt.findings.every(f=>!f.humanConfirmed&&f.decisions.length===0));
+assert.ok(!receipt.sources.some(s=>s.id==='S06'),'unrelated privileged note is not copied');
+get('decisionReason').value='Checked passages; camera clock remains unverified.';
+assert.equal(run("saveIssueDecision({preventDefault(){}},'PF-TIMING','reviewed')"),true);
+run("workspace.events.push({id:'other-case-secret',matterId:'another-matter',action:'issue.status_changed',target:'PF-TIMING',details:{reason:'secret'}})");
+receipt=run('pilotReviewReceipt()');
+const finding=receipt.findings.find(f=>f.id==='PF-TIMING');
+assert.equal(finding.humanConfirmed,true);
+assert.equal(finding.decisions[0].auditEventIds.length,1);
+assert.ok(!JSON.stringify(receipt).includes('other-case-secret'));
+for(const c of finding.citations){const source=receipt.sources.find(s=>s.id===c.sourceId);assert.equal(source.indexedText.slice(c.start,c.end),c.quote)}
+run("data.documents.find(d=>d.id==='S02').excerpt+=' Revised source';");
+receipt=run('pilotReviewReceipt()');
+assert.equal(receipt.findings.find(f=>f.id==='PF-TIMING').humanConfirmed,false);
+assert.equal(receipt.findings.find(f=>f.id==='PF-TIMING').needsSourceReview,true);
+assert.equal(receipt.findings.find(f=>f.id==='PF-TIMING').decisions.at(-1).auditEventIds.length,0,'system invalidation is not represented as a human decision audit event');
+for(const state of ["activeSecurityProfile='client'","activeSecurityProfile='investigator'","activeSecurityProfile='attorney';sessionLocked=true","sessionLocked=false;privacyMode=true"]){run(state);assert.equal(run('pilotReviewReceipt()'),null);assert.equal(run('exportPilotReviewReceipt()'),false)}
+run("privacyMode=false;activeSecurityProfile='attorney'");
+assert.equal(run('exportPilotReviewReceipt()'),true);
+run("switchSecurityProfile('client')");get('confirmSensitive').onclick();
+assert.equal(run("workspace.events.filter(e=>e.action==='review.receipt_exported').length"),0,'confirmation rechecks role');
+run("activeSecurityProfile='attorney';workspace.cases['other-matter']={...structuredClone(data),matter:{...data.matter,id:'other-matter'}}");run('exportPilotReviewReceipt()');run("switchCase('other-matter')");get('confirmSensitive').onclick();
+assert.equal(run("workspace.events.filter(e=>e.action==='review.receipt_exported').length"),0,'confirmation is matter bound');
+console.log('PASS review receipt: source passages, decision/event linkage, source invalidation, minimization, cross-matter and role/lock/privacy/confirmation boundaries.');
