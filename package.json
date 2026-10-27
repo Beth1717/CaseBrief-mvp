@@ -5,8 +5,13 @@
   "description": "Synthetic CaseBrief investor demo and local UMG adapter qualification",
   "scripts": {
     "start": "python3 -m http.server 8765 --bind 127.0.0.1",
-    "test:runtime": "node integration/tests/umg-runtime-rev2.cjs"
+    "test:runtime": "node integration/tests/umg-runtime-rev2.cjs",
+    "evaluate:pilot": "node scripts/pilot-scorecard.cjs readiness/pilot-evaluation-template.json"
   },
-  "dependencies": {"ajv": "8.20.0"},
-  "devDependencies": {"playwright": "1.62.1"}
+  "dependencies": {
+    "ajv": "8.20.0"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
 }

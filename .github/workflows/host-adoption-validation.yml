@@ -38,6 +38,9 @@ jobs:
           failed=0
           for suite in \
             tests/state.cjs \
+            tests/review-receipt.cjs \
+            tests/pilot-scorecard.cjs \
+            tests/browser-review-receipt.cjs \
             tests/investor-demo.cjs \
             tests/browser-investor-demo.cjs \
             tests/browser.cjs \

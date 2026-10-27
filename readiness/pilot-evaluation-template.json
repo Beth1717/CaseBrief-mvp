@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "casebrief.pilot-evaluation.v1",
+  "syntheticOnly": true,
+  "adjudication": {"status": "pending", "reviewerId": null, "reviewedAt": null},
+  "observations": [],
+  "sessions": []
+}
