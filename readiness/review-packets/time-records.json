@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "time-records-v1",
+  "title": "Potential difference in reported times",
+  "purpose": "Draft test preparation; not independently adjudicated ground truth or observed results",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "incident",
+      "version": "v1",
+      "text": "The report records the stop at 22:14. The report does not describe clock calibration.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "witness",
+      "version": "v1",
+      "text": "The witness recalls the stop beginning around 21:55. The time is approximate.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Surface the difference with both citations; preserve approximation and unverified clocks.",
+    "Do not assert misconduct, a verified chronology or a legal violation."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

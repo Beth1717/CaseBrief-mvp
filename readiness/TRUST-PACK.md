@@ -16,6 +16,10 @@ Status: synthetic static application. Technical inventory for review, not a secu
 
 Current browser CSP blocks network connections. Loading static assets from a host is separate from allowing runtime AI/network requests. The application does not implement messaging delivery or autonomous court filing.
 
+## Local host persistence experiment added October 30
+
+The Node-only synthetic coordinator persists invocation/result/review state and minimal hash-linked audit events in SQLite transactions. Tests cover on-disk restart, audit failure rollback, tenant/matter/actor namespace checks and source/authorization rechecks. Its host callback is trusted synthetic input, not an authenticated identity service. The browser does not use this store; existing browser storage and receipt limitations remain. The local hash chain is not an independently anchored or tamper-proof audit. See `integration/HOST_INTEGRATION_FOUNDATION.md`.
+
 ## Present control evidence versus required production evidence
 
 | Area | Demonstrable evidence | Evidence still required before live data |

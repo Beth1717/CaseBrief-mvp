@@ -1,0 +1,10 @@
+--- a/tools/run_live_matrix.py
++++ b/tools/run_live_matrix.py
+@@ -14,0 +15 @@
++import jsonschema  # Required preflight; a missing dependency must fail the run.
+@@ -76 +77 @@
+-    except Exception as e:
++    except (ContractViolation,jsonschema.exceptions.ValidationError) as e:
+@@ -146,0 +148,2 @@
++            if response is None: raise RuntimeError('Known-good runtime response unavailable; cannot run rejection probes')
++            validate(good,response)  # Establish a valid baseline before any forged response tests.
