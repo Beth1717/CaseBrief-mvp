@@ -1,0 +1,43 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {chromium}=require('playwright');
+(async()=>{
+ const executablePath=process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||['/usr/bin/chromium','/usr/bin/chromium-browser','/usr/bin/google-chrome'].find(fs.existsSync);
+ const browser=await chromium.launch({headless:true,...(executablePath?{executablePath}:{})});
+ try{
+  const page=await browser.newPage({viewport:{width:1360,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('http://127.0.0.1:8765/');
+  await page.getByRole('button',{name:'Case Ingestion',exact:true}).click();
+  await page.getByRole('heading',{name:'Case ingestion',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Fictional discovery manifest',exact:true}).click();
+  await page.getByText('quarantined',{exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>data.documents.some(d=>d.ingestionSourceId)),false);
+  await page.getByRole('button',{name:'Fictional discovery manifest',exact:true}).click();
+  await page.getByText('Exact synthetic payload already recorded.',{exact:false}).waitFor();
+  assert.equal(await page.evaluate(()=>ingestionState().sources.length),1);
+  await page.getByRole('button',{name:'Review for promotion',exact:true}).click();
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();assert.equal(await page.evaluate(()=>data.documents.some(d=>d.ingestionSourceId)),false);
+  await page.getByRole('button',{name:'Review for promotion',exact:true}).click();
+  await page.locator('#ingestionReason').fill('Checked this fictional source. <script>plain text</script>');
+  await page.getByRole('button',{name:'Save source decision',exact:true}).click();
+  await page.getByText('promoted',{exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>data.documents.filter(d=>d.ingestionSourceId).length),1);
+  assert.equal(await page.evaluate(()=>data.documents.find(d=>d.ingestionSourceId).reviewed),false);
+  await page.reload();await page.getByRole('button',{name:'Case Ingestion',exact:true}).click();await page.getByText('promoted',{exact:true}).waitFor();
+  assert.equal(await page.locator('#app script').count(),0);
+  await page.getByRole('button',{name:'Updated fictional discovery manifest',exact:true}).click();
+  await page.getByRole('button',{name:'Review for promotion',exact:true}).click();await page.locator('#ingestionReason').fill('New fictional revision checked');await page.getByRole('button',{name:'Save source decision',exact:true}).click();
+  await page.getByText('superseded',{exact:true}).waitFor();assert.equal(await page.evaluate(()=>data.documents.find(d=>d.ingestionSourceId).sourceVersion),2);
+  await page.getByRole('button',{name:'Revoke case use',exact:true}).click();await page.locator('#ingestionReason').fill('Withdrawing the fictional source');await page.getByRole('button',{name:'Save source decision',exact:true}).click();await page.getByText('revoked',{exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>data.documents.some(d=>d.ingestionSourceId)),false);
+  await page.getByRole('button',{name:'Fictional internal verification note',exact:true}).click();await page.getByRole('button',{name:'Review for promotion',exact:true}).click();await page.locator('#ingestionReason').fill('Private reason sentinel');await page.getByRole('button',{name:'Save source decision',exact:true}).click();await page.getByText('promoted',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Revoke case use',exact:true}).click();await page.evaluate(()=>switchSecurityProfile('investigator'));
+  assert.equal(await page.locator('#detailRoot').innerText(),'');assert.equal(await page.locator('#app').getByText('Fictional internal verification note',{exact:true}).count(),0);assert.ok(!(await page.locator('#app').innerText()).includes('FICTIONAL COUNSEL NOTE'));
+  await page.evaluate(()=>showView('audit'));assert.ok(!(await page.locator('#app').innerText()).includes('Private reason sentinel'));
+  await page.selectOption('#securityRole','client');assert.equal(await page.evaluate(()=>importIngestionFixture('firm_manifest')),false);
+  await page.evaluate(()=>{current='ingestion';render()});assert.ok(!(await page.locator('#app').innerText()).includes('FICTIONAL MANIFEST'));
+  await page.selectOption('#securityRole','attorney');await page.getByRole('button',{name:'Case Ingestion',exact:true}).click();
+  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  if(process.env.CASEBRIEF_INGESTION_SCREENSHOT)await page.screenshot({path:process.env.CASEBRIEF_INGESTION_SCREENSHOT,fullPage:true});
+  assert.deepEqual(errors,[]);console.log('PASS browser ingestion: actual import/promotion/replacement/revocation, reload persistence, escaped reasons, restricted source and recipient denial, and mobile layout.');
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exitCode=1});

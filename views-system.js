@@ -12,6 +12,7 @@ Trace + audit event</pre></div><div class="card c12"><h3>New surfaces that must 
 function runConsistency(){if(!applicationAllowed())return blockApplication();const hits=data.issues.filter(x=>['contradiction','missing_evidence','timeline_gap','unsupported_assertion'].includes(x.category));record('analysis.started','record-consistency',{simulated:true});document.getElementById('runner').innerHTML=`<div class="list" style="margin-top:10px">${hits.map(x=>`<div class="item"><b>${esc(x.category)}</b><div>${esc(x.statement)}</div><div class="meta">${esc(x.sources.join(', '))}</div></div>`).join('')}</div>`;record('analysis.completed','record-consistency',{findings:hits.map(x=>x.id),simulated:true},'success',systemActor)}
 
 const AUDIT_ACTION_LABELS={
+ 'ingestion.source_quarantined':'Source entered quarantine','ingestion.source_promoted':'Source promoted for case review','ingestion.source_revoked':'Source case use revoked','ingestion.duplicate_detected':'Duplicate source detected',
  'session.started':'Session started','view.opened':'Page opened','control.activated':'Control selected','case.switched':'Active case changed',
  'record.opened':'Record opened','detail.closed':'Details closed','cri.opened':'CRI details opened','review.decision_started':'Review decision started',
  'issue.status_changed':'Review status changed','document.review_changed':'Document review changed','authority.verification_changed':'Authority verification changed',

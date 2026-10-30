@@ -8,7 +8,7 @@ CaseBrief connects case records, source-linked factual review, unfinished work a
 
 PR #9 is merged at `7b9ffa5a5ba68057075dec95c19985f439b342d3`; its source head `5fcec2619a498738a6146e18ba20f70e41619f12` passed historical Actions run #22 with 20 suites. The changes in this branch have separate validation; historical CI does not cover them.
 
-See [host integration foundation](../integration/HOST_INTEGRATION_FOUNDATION.md) for actual adapter-to-package qualification, local synthetic SQLite persistence, source snapshots, stale-result rejection and audit rollback. The browser remains static and disconnected from the runtime. Use the [attorney worksheet](ATTORNEY_REVIEW_WORKSHEET.md), six draft fictional packets, [backend decisions](BACKEND_DECISIONS.md) and [ingestion recovery review](INGESTION_RECOVERY_REVIEW.md) for the remaining preparatory work. No measured attorney/model results are populated.
+See [host integration foundation](../integration/HOST_INTEGRATION_FOUNDATION.md) for actual adapter-to-package qualification, local synthetic SQLite persistence, source snapshots, stale-result rejection and audit rollback. The browser remains static and disconnected from the runtime. Use the [attorney worksheet](ATTORNEY_REVIEW_WORKSHEET.md), six draft fictional packets, [backend decisions](BACKEND_DECISIONS.md) and [ingestion recovery review](INGESTION_RECOVERY_REVIEW.md) for the remaining preparatory work. The focused [synthetic ingestion recovery](../integration/INGESTION_RECOVERY.md) adds quarantine and versioned source promotion/revocation without changing the runtime wire contract. No measured attorney/model results are populated.
 
 ## Historical baseline
 

@@ -19,7 +19,7 @@ The last items are not automatically completed by this engineering change. Do no
 
 The full October 30 response package was checksum-verified and its standalone qualification reproduced. The current branch adds a reproducible runner exercising the actual CaseBrief Node adapter with that package, including a persistent local synthetic review and audit flow. See `integration/HOST_INTEGRATION_FOUNDATION.md` for commands and limits. These changes are not a production backend or Chris's signoff.
 
-Completed preparation: six draft fictional factual-control packets and reviewer worksheet; an explicit provider/backend decision register; and feature-level recovery triage of conflicting PR #2. Packet labels are not adjudicated and no pilot measurements are claimed. Ingestion recovery itself is not implemented.
+Completed preparation: six draft fictional factual-control packets and reviewer worksheet; an explicit provider/backend decision register; and feature-level recovery triage of conflicting PR #2. Packet labels are not adjudicated and no pilot measurements are claimed. The fixed-sample intake slice is implemented separately in `ingestion-demo.js`; real file/court ingestion remains open.
 
 ## What remains with Chris and joint interface review
 

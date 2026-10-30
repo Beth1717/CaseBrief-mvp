@@ -44,7 +44,7 @@ npm run test:live-umg -- /absolute/path/to/CaseBrief_UMG_Integration_Response_FU
 
 The archive pin is SHA-256 `35c87ae0c92a9b48fe8d77d1d638620470f46c796885957f495284fad87a8476`; a different release requires explicit review and new qualification. The runner uses Python standard library plus Node/Ajv already declared by CaseBrief. It does not require the supplemental Python `jsonschema` evaluator.
 
-CI runs the original 20 suites plus the new boundary and synthetic-host suites. The optional actual-package test is local because the third-party archive is not redistributed or fetched by CI. Browser validation requires matching Playwright Chromium; a failed local browser download is not a pass.
+CI runs the original 20 suites, the boundary and synthetic-host suites, and two ingestion suites (24 total). The intake UI is a separate browser-only demonstration; it does not call this host store. The optional actual-package test is local because the third-party archive is not redistributed or fetched by CI. Browser validation requires matching Playwright Chromium; a failed local browser download is not a pass.
 
 ## Production dependencies still open
 

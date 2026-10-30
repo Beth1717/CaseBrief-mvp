@@ -20,6 +20,10 @@ Current browser CSP blocks network connections. Loading static assets from a hos
 
 The Node-only synthetic coordinator persists invocation/result/review state and minimal hash-linked audit events in SQLite transactions. Tests cover on-disk restart, audit failure rollback, tenant/matter/actor namespace checks and source/authorization rechecks. Its host callback is trusted synthetic input, not an authenticated identity service. The browser does not use this store; existing browser storage and receipt limitations remain. The local hash chain is not an independently anchored or tamper-proof audit. See `integration/HOST_INTEGRATION_FOUNDATION.md`.
 
+## Recovered synthetic intake
+
+`ingestion-demo.js` imports only fixed fictional samples, keeps quarantine outside case documents/analysis, preserves versioned payloads and derived assertions, requires reasoned promotion/revocation, and stages browser state plus activity events in one storage write. General intake events omit human reason text; source-ledger reasons are role-filtered. Storage failure rolls back the staged state. This is not a production file pipeline or backend persistence guarantee. See `integration/INGESTION_RECOVERY.md`.
+
 ## Present control evidence versus required production evidence
 
 | Area | Demonstrable evidence | Evidence still required before live data |

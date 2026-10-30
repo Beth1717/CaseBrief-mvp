@@ -9,7 +9,8 @@
     "evaluate:pilot": "node scripts/pilot-scorecard.cjs readiness/pilot-evaluation-template.json",
     "test:host": "node integration/tests/synthetic-review-host.cjs",
     "test:boundary": "node integration/tests/umg-runtime-boundary.cjs",
-    "test:live-umg": "python3 scripts/qualify-umg-package.py"
+    "test:live-umg": "python3 scripts/qualify-umg-package.py",
+    "test:ingestion": "node tests/ingestion.cjs"
   },
   "dependencies": {
     "ajv": "8.20.0"
