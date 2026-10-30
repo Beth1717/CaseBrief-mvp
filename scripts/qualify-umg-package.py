@@ -7,25 +7,27 @@ from pathlib import Path,PurePosixPath
 from urllib.request import urlopen
 ROOT=Path(__file__).resolve().parents[1]
 PIN='35c87ae0c92a9b48fe8d77d1d638620470f46c796885957f495284fad87a8476'
+def require(ok,message):
+    if not ok:raise ValueError(message)
 def verify(archive):
-    assert hashlib.sha256(archive.read_bytes()).hexdigest()==PIN,'Unrecognized archive digest; review a new release before changing the pin'
+    require(hashlib.sha256(archive.read_bytes()).hexdigest()==PIN,'Unrecognized archive digest; review a new release before changing the pin')
     with zipfile.ZipFile(archive) as z:
         entries=z.infolist();names=[e.filename for e in entries]
-        assert len(names)==len(set(names)),'Duplicate archive paths'
-        assert sum(e.file_size for e in entries)<20*1024*1024,'Unexpected archive size'
+        require(len(names)==len(set(names)),'Duplicate archive paths')
+        require(sum(e.file_size for e in entries)<20*1024*1024,'Unexpected archive size')
         for e in entries:
             p=PurePosixPath(e.filename)
-            assert not p.is_absolute() and '..' not in p.parts and '\\' not in e.filename,'Unsafe archive path'
-            assert not stat.S_ISLNK(e.external_attr>>16),'Archive symlink'
+            require(not p.is_absolute() and '..' not in p.parts and '\\' not in e.filename,'Unsafe archive path')
+            require(not stat.S_ISLNK(e.external_attr>>16),'Archive symlink')
         manifest=json.loads(z.read('PACKAGE_MANIFEST.json'))
-        assert manifest['fileCount']==len(manifest['files'])==908
+        require(manifest['fileCount']==len(manifest['files'])==908,'Unexpected manifest count')
         expected={e['path'] for e in manifest['files']}
-        assert len(expected)==908 and expected|{'PACKAGE_MANIFEST.json'}==set(names)
+        require(len(expected)==908 and expected|{'PACKAGE_MANIFEST.json'}==set(names),'Unlisted or duplicate manifest entry')
         for e in manifest['files']:
             content=z.read(e['path'])
-            assert len(content)==e['bytes'] and hashlib.sha256(content).hexdigest()==e['sha256'],e['path']
+            require(len(content)==e['bytes'] and hashlib.sha256(content).hexdigest()==e['sha256'],e['path'])
         for name in ['record-consistency-request.schema.json','record-consistency-response.schema.json']:
-            assert z.read('working-release/schemas/'+name)==(ROOT/'integration/runtime-contract-v2/schemas'/name).read_bytes(),'Schema drift'
+            require(z.read('working-release/schemas/'+name)==(ROOT/'integration/runtime-contract-v2/schemas'/name).read_bytes(),'Schema drift')
         print('PASS immutable archive, 908 file hashes, safe paths and exact CaseBrief schema match',flush=True)
         return z.read('VERSION_MANIFEST.json')
 def main():
