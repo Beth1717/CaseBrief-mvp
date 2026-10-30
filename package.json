@@ -6,12 +6,19 @@
   "scripts": {
     "start": "python3 -m http.server 8765 --bind 127.0.0.1",
     "test:runtime": "node integration/tests/umg-runtime-rev2.cjs",
-    "evaluate:pilot": "node scripts/pilot-scorecard.cjs readiness/pilot-evaluation-template.json"
+    "evaluate:pilot": "node scripts/pilot-scorecard.cjs readiness/pilot-evaluation-template.json",
+    "test:host": "node integration/tests/synthetic-review-host.cjs",
+    "test:boundary": "node integration/tests/umg-runtime-boundary.cjs",
+    "test:live-umg": "python3 scripts/qualify-umg-package.py",
+    "test:ingestion": "node tests/ingestion.cjs"
   },
   "dependencies": {
     "ajv": "8.20.0"
   },
   "devDependencies": {
     "playwright": "1.62.1"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

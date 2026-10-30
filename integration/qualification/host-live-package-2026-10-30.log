@@ -1,0 +1,45 @@
+PASS immutable archive, 908 file hashes, safe paths and exact CaseBrief schema match
+PASS actual CaseBrief adapter: supported-contradiction
+PASS actual CaseBrief adapter: unsupported-claim
+PASS actual CaseBrief adapter: wrong-matter-denial
+PASS actual CaseBrief adapter: missing-expected-record
+PASS actual CaseBrief adapter: changed source quarantined
+PASS actual CaseBrief adapter: embedded instructions quarantined
+PASS actual CaseBrief adapter: new candidate is not inferred
+PASS actual CaseBrief adapter: missing host scope stops before transport
+PASS actual CaseBrief adapter: expired authorization rejected before transport
+PASS actual CaseBrief adapter: real response persisted as pending human review
+PASS actual CaseBrief adapter: explicit human review persists with audit
+PASS actual CaseBrief adapter: source revision invalidates prior human confirmation
+PASS actual CaseBrief adapter: source change while real compile runs prevents acceptance
+PASS actual CaseBrief adapter: tenant with reused matter and source IDs cannot read another invocation
+{
+  "status": "PASS",
+  "tests": 14,
+  "execution": "actual CaseBrief Node adapter to packaged loopback Framework/H4",
+  "modelInference": "NOT_RUN",
+  "productionSecurity": "NOT_QUALIFIED",
+  "checks": [
+    "supported-contradiction",
+    "unsupported-claim",
+    "wrong-matter-denial",
+    "missing-expected-record",
+    "changed source quarantined",
+    "embedded instructions quarantined",
+    "new candidate is not inferred",
+    "missing host scope stops before transport",
+    "expired authorization rejected before transport",
+    "real response persisted as pending human review",
+    "explicit human review persists with audit",
+    "source revision invalidates prior human confirmation",
+    "source change while real compile runs prevents acceptance",
+    "tenant with reused matter and source IDs cannot read another invocation"
+  ]
+}
+{
+  "packageSha256": "35c87ae0c92a9b48fe8d77d1d638620470f46c796885957f495284fad87a8476",
+  "wrapperSha256": "cba0888455c41e564f061e0a3a6d176f1ae1e7037ae13dd79dbee87c53bd15cd",
+  "contractRevision": 2,
+  "result": "PASS",
+  "scope": "synthetic local; no model or production approval"
+}

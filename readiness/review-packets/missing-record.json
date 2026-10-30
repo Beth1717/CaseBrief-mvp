@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "missing-record-v1",
+  "title": "Referenced record absent from supplied packet",
+  "purpose": "Draft test preparation; not independently adjudicated ground truth or observed results",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "report",
+      "version": "v1",
+      "text": "The report refers to body-camera recording FICTIONAL-BC-7.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "manifest",
+      "version": "v1",
+      "text": "The fictional supplied discovery list contains only the report and this manifest; no video is listed.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Mark recording as not supplied in this packet; cite the reference and manifest.",
+    "Do not assert that the recording does not exist or that a party failed a legal duty."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

@@ -68,17 +68,17 @@ function fmtDate(v){if(!v)return 'Not recorded';const d=new Date(v);return Numbe
 function updateStorageNotice(){let el=document.getElementById('storageNotice');if(!el){el=document.createElement('div');el.id='storageNotice';el.className='callout notice';document.querySelector('.layout').before(el)}el.hidden=storageOK;el.textContent='Browser storage is unavailable. Changes are only retained for this tab session.'}
 function syncPicker(){if(!applicationAllowed())return blockApplication();document.getElementById('casePicker').innerHTML=Object.values(workspace.cases).map(c=>`<option value="${c.matter.id}" ${c.matter.id===data.matter.id?'selected':''}>${esc(c.matter.title)}</option>`).join('')}
 function switchCase(id){if(!applicationAllowed())return false;if(!workspace.cases[id]||!requirePermission('case_view',`case:${id}`))return;const from=data.matter.id;closeDetail();data=workspace.cases[id];ensureDefaults(data);workspace.active=id;record('case.switched',id,{from,to:id});syncPicker();showView('dashboard')}
-const VIEW_PERMISSIONS={dashboard:'case_view',review:'review_decisions',timeline:'case_view',evidence:'case_view',witnesses:'case_view',documents:'case_view',authorities:'authority_research',assistant:'ai_use',drafting:'drafting',communications:'case_view',umg:'security_admin',audit:'audit_view',safeguards:'case_view',security:'case_view',survey:null,landing:null};
+const VIEW_PERMISSIONS={ingestion:'ingestion_manage',dashboard:'case_view',review:'review_decisions',timeline:'case_view',evidence:'case_view',witnesses:'case_view',documents:'case_view',authorities:'authority_research',assistant:'ai_use',drafting:'drafting',communications:'case_view',umg:'security_admin',audit:'audit_view',safeguards:'case_view',security:'case_view',survey:null,landing:null};
 function nav(){
  if(!applicationAllowed())return blockApplication();
  const groups=[
-  ['Matter',['dashboard','review','timeline','evidence','witnesses','documents','authorities']],
+  ['Matter',['dashboard','ingestion','review','timeline','evidence','witnesses','documents','authorities']],
   ['Work',['assistant','drafting','communications']],
   ['Trust',['security','audit','safeguards']],
   ['System',['umg']],
   ['Research',['landing','survey']]
  ];
- const labels={dashboard:'Case Overview',review:'Review Queue',timeline:'Court + Chronology',evidence:'Evidence',witnesses:'Witnesses',documents:'Documents',authorities:'Law & Authority',assistant:'AI Assistant',drafting:'Drafting Studio',communications:'Communications',security:'Security Center',umg:'UMG Runtime',audit:'Activity History',safeguards:'Safeguards',landing:'Public View',survey:'Attorney Survey'};
+ const labels={ingestion:'Case Ingestion',dashboard:'Case Overview',review:'Review Queue',timeline:'Court + Chronology',evidence:'Evidence',witnesses:'Witnesses',documents:'Documents',authorities:'Law & Authority',assistant:'AI Assistant',drafting:'Drafting Studio',communications:'Communications',security:'Security Center',umg:'UMG Runtime',audit:'Activity History',safeguards:'Safeguards',landing:'Public View',survey:'Attorney Survey'};
  document.getElementById('sidebar').innerHTML=groups.map(([g,items])=>`<div class="navgroup">${g}</div>${items.map(i=>{const perm=VIEW_PERMISSIONS[i],allowed=!perm||can(perm);return `<button class="navbtn ${current===i?'active':''} ${allowed?'':'navlocked'}" onclick="showView('${i}')">${allowed?'':'🔒 '}${labels[i]}</button>`}).join('')}`).join('');
  const rc=document.getElementById('roleControl');if(rc)rc.innerHTML=securityRoleControl();applySecurityUI();syncPrivacyShield();syncLockScreen();
 }

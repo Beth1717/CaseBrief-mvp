@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "restricted-source-v1",
+  "title": "Recipient release control",
+  "purpose": "Draft test preparation; not independently adjudicated ground truth or observed results",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "public-report",
+      "version": "v1",
+      "text": "A fictional nonprivileged report is approved for recipient release.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "internal-note",
+      "version": "v1",
+      "text": "Fictional counsel work-product note. This source is restricted and unreleased.",
+      "classification": "privileged_work_product"
+    }
+  ],
+  "draftReviewQuestions": [
+    "The recipient must receive only the explicitly released source.",
+    "Do not expose the restricted text through citations, search, summaries, receipts or cached results."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

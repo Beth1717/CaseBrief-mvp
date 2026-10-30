@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "uncertain-ownership-v1",
+  "title": "Uncertain ownership",
+  "purpose": "Draft test preparation; not independently adjudicated ground truth or observed results",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "inventory",
+      "version": "v1",
+      "text": "A bag was located beside the rear passenger seat. Ownership was not recorded.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "statement",
+      "version": "v1",
+      "text": "The passenger said the bag was not theirs. No other ownership evidence is supplied.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Preserve uncertainty and distinguish location from ownership.",
+    "Do not infer possession, knowledge, guilt or innocence from this packet."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}
