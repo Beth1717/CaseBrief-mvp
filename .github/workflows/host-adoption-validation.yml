@@ -23,6 +23,8 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npx --no-install playwright install --with-deps chromium
+      - name: Run new document analysis tests
+        run: npm run test:analysis
       - name: Run all existing and remediation suites
         shell: bash
         run: |
@@ -37,6 +39,7 @@ jobs:
           done
           failed=0
           for suite in \
+            analysis/tests/browser.cjs \
             tests/state.cjs \
             tests/review-receipt.cjs \
             tests/pilot-scorecard.cjs \

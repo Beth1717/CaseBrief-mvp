@@ -6,7 +6,10 @@
   "scripts": {
     "start": "python3 -m http.server 8765 --bind 127.0.0.1",
     "test:runtime": "node integration/tests/umg-runtime-rev2.cjs",
-    "evaluate:pilot": "node scripts/pilot-scorecard.cjs readiness/pilot-evaluation-template.json"
+    "evaluate:pilot": "node scripts/pilot-scorecard.cjs readiness/pilot-evaluation-template.json",
+    "start:analysis": "node analysis/server.cjs",
+    "test:analysis": "node --test analysis/tests/*.test.cjs",
+    "test:analysis:browser": "node analysis/tests/browser.cjs"
   },
   "dependencies": {
     "ajv": "8.20.0"
