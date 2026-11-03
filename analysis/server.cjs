@@ -3,6 +3,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const {randomBytes,randomUUID,timingSafeEqual}=require('node:crypto');
 const {buildRequest,invokeLocal}=require('../integration/umg-runtime-rev2.cjs');
 const {analyse,rulesProvider,hash,AnalysisError}=require('./engine.cjs');
+const {verification}=require('./verification.cjs');
 const {createOllamaProvider}=require('./ollama.cjs');
 const ROOT=path.resolve(__dirname,'..');
 const demoFiles=new Set(['index.html',...fs.readdirSync(ROOT).filter(name=>/\.(js|css)$/.test(name)),'integration/host-controls.js']);
@@ -42,11 +43,17 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
    });
    if(route==='/api/review'){
     const row=records.get(input.invocationId);
-    if(!row||!Number.isInteger(input.version)||input.version!==row.version||!row.result.findings.some(f=>f.findingId===input.findingId)||!['CONFIRMED','DISMISSED','REOPENED'].includes(input.action)||typeof input.reason!=='string'||!input.reason.trim()||input.reason.length>1000)throw new AnalysisError('INVALID_REVIEW_OR_STALE_VERSION');
+    if(!row||!Number.isInteger(input.version)||input.version!==row.version||!row.result.findings.some(f=>f.findingId===input.findingId)||!['CONFIRMED','DISMISSED','REOPENED','SUPPORT_ASSESSED'].includes(input.action)||typeof input.reason!=='string'||!input.reason.trim()||input.reason.length>1000)throw new AnalysisError('INVALID_REVIEW_OR_STALE_VERSION');
     // Local explicit user event only; no attorney qualification is implied.
-    if(row.events.length>=100)throw new AnalysisError('REVIEW_HISTORY_LIMIT');
-    row.events.push({at:new Date().toISOString(),actor:'local-workbench-user',findingId:input.findingId,action:input.action,reason:input.reason.trim()});row.version++;
-    return send(200,{version:row.version,events:row.events});
+    const finding=row.result.findings.find(f=>f.findingId===input.findingId);
+    const prior=verification(finding,row.events);
+    if(input.action==='SUPPORT_ASSESSED'&&!['SUPPORTED','NOT_SUPPORTED','UNCERTAIN'].includes(input.assessment))throw new AnalysisError('SUPPORT_ASSESSMENT_REQUIRED');
+    if(input.action==='CONFIRMED'&&prior.propositionSupport!=='SUPPORTED')throw new AnalysisError('SUPPORTED_PASSAGES_REQUIRED');
+    if(row.events.length>=98)throw new AnalysisError('REVIEW_HISTORY_LIMIT');
+    row.events.push({id:randomUUID(),at:new Date().toISOString(),actor:'local-workbench-user',findingId:input.findingId,action:input.action,reason:input.reason.trim(),...(input.action==='SUPPORT_ASSESSED'?{assessment:input.assessment}:{})});
+    if(input.action==='SUPPORT_ASSESSED'&&prior.disposition==='CONFIRMED')row.events.push({id:randomUUID(),at:new Date().toISOString(),actor:'local-workbench-system',findingId:input.findingId,action:'REOPENED',reason:'Passage assessment changed; confirmation must be recorded again.'});
+    finding.verification=verification(finding,row.events);row.version++;
+    return send(200,{version:row.version,events:row.events,findings:row.result.findings});
    }
    if(input.syntheticOnly!==true||!['rules','ollama'].includes(input.engine)||!Array.isArray(input.documents)||input.documents.length<2||input.documents.length>12)throw new AnalysisError('FICTIONAL_DOCUMENTS_REQUIRED');
    if(records.size>=100)throw new AnalysisError('LOCAL_SESSION_FULL_RESTART_TO_CLEAR');

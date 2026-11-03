@@ -25,6 +25,11 @@ jobs:
           npx --no-install playwright install --with-deps chromium
       - name: Run new document analysis tests
         run: npm run test:analysis
+      - name: Record synthetic evaluation and document benchmark
+        run: |
+          mkdir -p readiness/results
+          npm run --silent evaluate:analysis > readiness/results/analysis-coverage.json
+          npm run --silent benchmark:documents > readiness/results/document-benchmark.json
       - name: Run all existing and remediation suites
         shell: bash
         run: |
@@ -41,6 +46,9 @@ jobs:
           for suite in \
             analysis/tests/browser.cjs \
             tests/state.cjs \
+            tests/document-library.cjs \
+            tests/browser-document-library.cjs \
+            tests/browser-research-survey.cjs \
             tests/review-receipt.cjs \
             tests/pilot-scorecard.cjs \
             tests/browser-review-receipt.cjs \
@@ -75,4 +83,5 @@ jobs:
           path: |
             validation-receipt.txt
             server.log
+            readiness/results/
           if-no-files-found: ignore

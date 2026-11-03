@@ -1,6 +1,7 @@
 'use strict';
 const {createHash,randomUUID}=require('node:crypto');
 const Ajv=require('ajv');
+const {verification}=require('./verification.cjs');
 const {validateRequest}=require('../integration/umg-runtime-rev2.cjs');
 const hash=value=>createHash('sha256').update(value).digest('hex');
 class AnalysisError extends Error{constructor(code){super(code);this.code=code}}
@@ -45,7 +46,7 @@ async function analyse(request,{provider,currentRequest=()=>request}={}){
    const refs=candidate.citations.map(c=>{const source=sources.get(c.sourceId);if(!source)fail('UNAUTHORIZED_CITATION');return citation(source,c.quote)});
    if(new Set(refs.map(c=>c.sourceId)).size<2)fail('INSUFFICIENT_DISTINCT_SOURCES');
    const key=hash(JSON.stringify({statement:candidate.statement,refs}));if(seen.has(key))continue;seen.add(key);
-   findings.push({findingId:'analysis-'+key.slice(0,20),category:'possible_factual_inconsistency',statement:candidate.statement,citations:refs,sourceRefs:[...new Set(refs.map(c=>c.sourceId))],reviewState:'HUMAN_REVIEW_REQUIRED',support:'EXACT_QUOTES_VERIFIED_SEMANTICS_REQUIRE_REVIEW'});
+   findings.push({findingId:'analysis-'+key.slice(0,20),category:'possible_factual_inconsistency',statement:candidate.statement,citations:refs,sourceRefs:[...new Set(refs.map(c=>c.sourceId))],reviewState:'HUMAN_REVIEW_REQUIRED',verification:verification({findingId:'analysis-'+key.slice(0,20)}),support:'EXACT_QUOTES_VERIFIED_SEMANTICS_REQUIRE_REVIEW'});
   }catch(e){if(!(e instanceof AnalysisError))throw e;quarantined.push({candidateIndex:raw.findings.indexOf(candidate),reason:e.code})}
  }
  return {schemaVersion:'casebrief.analysis.result.v1',invocationId:randomUUID(),requestId:request.requestId,correlationId:request.correlationId,tenantId:request.hostContext.tenantId,matterId:request.hostContext.matterId,authorizationRef:request.hostContext.authorization.decisionId,snapshotDigest:bound,sourceRefs:request.sources.map(s=>({sourceId:s.sourceId,sourceVersionId:'sha256:'+hash(s.extract),contentSha256:hash(s.extract)})),status:raw.status==='NEEDS_INPUT'||quarantined.length?'NEEDS_INPUT':'SUCCEEDED',findings,quarantined,execution:{provider:provider.id,model:provider.model||null,inference:provider.model?'EXECUTED':'NOT_RUN',startedAt,completedAt:new Date().toISOString()},effects:{dispatchCount:0,executed:[]},limitations:provider.limitations||['Exact quotation checks establish source linkage, not the truth or legal significance of a finding.']};
@@ -58,12 +59,14 @@ function rulesProvider(){return {id:'casebrief.explicit-time-rules.v1',model:nul
    const quote=match[1].trim();if(/\b(might|may|possibly|perhaps|around|approximately|not|never|denied|uncertain|unconfirmed|either|or)\b/i.test(quote))continue;
    const event=quote.replace(/\b(?:began|started|occurred|happened)\s+at\s+[\s\S]*$/i,'').replace(/^(?:the|a|an)\s+/i,'').trim().toLowerCase();
    if(!event||event.length>100)continue;
-   facts.push({event,time:`${Number(match[2])}:${match[3]}`,sourceId:s.sourceId,quote});
+   const dates=[...quote.matchAll(/\b\d{4}-\d{2}-\d{2}\b/g)].map(m=>m[0]);
+   facts.push({event,dates,time:`${Number(match[2])}:${match[3]}`,sourceId:s.sourceId,quote});
   }
  }
  const findings=[];
  for(let i=0;i<facts.length;i++)for(let j=i+1;j<facts.length;j++){
   const a=facts[i],b=facts[j];if(a.event!==b.event||a.sourceId===b.sourceId||a.time===b.time)continue;
+  if(a.dates.length&&b.dates.length&&JSON.stringify(a.dates)!==JSON.stringify(b.dates))continue;
   findings.push({statement:`Possible time discrepancy for ${a.event}: ${a.time} versus ${b.time}. Confirm the event and date refer to the same occurrence.`,citations:[{sourceId:a.sourceId,quote:a.quote},{sourceId:b.sourceId,quote:b.quote}]});
   if(findings.length>=50)break;
  }

@@ -23,7 +23,9 @@ test('local browser flow discovers fresh findings, rejects CSRF and records vers
  assert.equal((await fetch(base+'/api/analyse',{method:'POST',headers:{...headers,origin:'https://evil.example'},body})).status,403);
  const response=await fetch(base+'/api/analyse',{method:'POST',headers,body});assert.equal(response.status,200);const row=await response.json();assert.equal(row.result.findings.length,1);assert.equal(row.umg.status,'NOT_RUN');
  const review={invocationId:row.result.invocationId,version:0,findingId:row.result.findings[0].findingId,action:'CONFIRMED',reason:'I checked both source passages.'};
- const confirmed=await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)});assert.equal(confirmed.status,200);assert.equal((await confirmed.json()).version,1);
+ assert.equal((await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)})).status,400);
+ const assessed=await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify({...review,action:'SUPPORT_ASSESSED',assessment:'SUPPORTED'})});assert.equal(assessed.status,200);review.version=1;
+ const confirmed=await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)});assert.equal(confirmed.status,200);assert.equal((await confirmed.json()).version,2);
  assert.equal((await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)})).status,400);
  assert.equal((await fetch(base+'/.git/config')).status,404);
  assert.equal((await fetch(base+'/analysis/')).status,200);

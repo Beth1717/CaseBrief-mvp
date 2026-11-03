@@ -116,3 +116,11 @@ production tenant isolation and selected model/provider qualification remain ope
 It does not change CRI, import candidates into existing authoritative case state,
 or share attorney work product with family recipients. The main demo remains
 synthetic and its `connect-src 'none'` policy remains intact.
+
+## Verification follow-up
+
+Quote linkage is automatic; proposition support requires an explicit local human assessment (`SUPPORTED`, `NOT_SUPPORTED`, `UNCERTAIN`). Confirming a candidate requires a current `SUPPORTED` assessment and a reason. Reassessing a confirmed candidate reopens it. Every review event has an ID and the downloaded receipt retains the separate verification states. Local human assessment is not verified attorney signoff; `attorneyValidation` stays `NOT_ESTABLISHED`.
+
+Run `npm run evaluate:analysis` for observed rules output on the versioned fictional packet set, or `npm run evaluate:analysis -- ollama` only after installing/configuring a suitable local model. The runner supplies source text, never draft review questions, to the provider. Scores remain null until independent adjudication; known out-of-coverage tasks remain visible as NEEDS_INPUT. Recipient-release packets are kept out of the analysis runner and belong in permission tests.
+
+The time comparator abstains when both direct assertions identify different ISO dates. That narrow guard does not resolve natural-language dates, event identity or clock accuracy. This is still a bounded development method, not general record understanding.

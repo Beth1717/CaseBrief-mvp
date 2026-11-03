@@ -22,16 +22,22 @@ function render(){
  if(!row.result.findings.length)root.append(element('p',row.result.status==='NEEDS_INPUT'?'Insufficient supported evidence for a finding within this method’s coverage.':'Comparison returned no supported candidate. This does not prove the record is consistent.'));
  for(const f of row.result.findings){
   const card=element('article',undefined,'finding');const history=row.events.filter(e=>e.findingId===f.findingId);const last=history.at(-1);
-  card.append(element('span',last?last.action:'HUMAN REVIEW REQUIRED','pill'),element('h3',f.statement));
+  card.append(element('span',f.verification?.disposition||'HUMAN REVIEW REQUIRED','pill'),element('h3',f.statement));
+  card.append(element('p',`Source link: exact quotations matched. Passage support: ${f.verification?.propositionSupport||'UNASSESSED'}. Attorney validation: not established.`, 'verification-status'));
+  const assessment=element('select');assessment.setAttribute('aria-label','Passage support assessment');
+  for(const [value,label] of [['','Select passage support'],['SUPPORTED','Passages support this factual proposal'],['NOT_SUPPORTED','Passages do not support it'],['UNCERTAIN','Uncertain — more review needed']]){const option=element('option',label);option.value=value;assessment.append(option)}
+  card.append(assessment);
   for(const c of f.citations){const title=row.documents.find(d=>d.sourceId===c.sourceId)?.title||c.sourceId;card.append(element('small',`${title} · UTF-8 bytes ${c.startByte}–${c.endByte}`),element('blockquote',c.quote))}
   const reason=element('input');reason.type='text';reason.placeholder='Reason for your review decision';reason.maxLength=1000;reason.setAttribute('aria-label','Review decision reason');
   const controls=element('div',undefined,'reviewControls');
-  for(const [action,title] of [['CONFIRMED','Confirm candidate'],['DISMISSED','Dismiss'],['REOPENED','Reopen']]){const button=element('button',title,'secondary');button.type='button';button.onclick=async()=>{
+  for(const [action,title] of [['SUPPORT_ASSESSED','Record passage assessment'],['CONFIRMED','Confirm candidate'],['DISMISSED','Dismiss'],['REOPENED','Reopen']]){const button=element('button',title,'secondary');button.type='button';button.onclick=async()=>{
    if(!reason.value.trim()){reason.focus();return}
+   if(action==='SUPPORT_ASSESSED'&&!assessment.value){assessment.focus();return}
+   const currentRow=row,revision=inputRevision;
    button.disabled=true;
-   try{const updated=await post('/api/review',{invocationId:row.result.invocationId,findingId:f.findingId,action,reason:reason.value,version:row.version});row.events=updated.events;row.version=updated.version;render()}catch(e){$('progress').textContent=e.message;button.disabled=false}
+   try{const updated=await post('/api/review',{invocationId:currentRow.result.invocationId,findingId:f.findingId,action,reason:reason.value,version:currentRow.version,...(action==='SUPPORT_ASSESSED'?{assessment:assessment.value}:{})});if(row!==currentRow||inputRevision!==revision)return;row.events=updated.events;row.version=updated.version;row.result.findings=updated.findings;render()}catch(e){$('progress').textContent=e.message;button.disabled=false}
   };controls.append(button)}
-  card.append(reason,controls);for(const e of history)card.append(element('p',`${e.action} · ${e.reason} · ${e.at}`,'muted'));root.append(card);
+  card.append(reason,controls);for(const e of history)card.append(element('p',`${e.action}${e.assessment?' ('+e.assessment+')':''} · ${e.reason} · ${e.at}`,'muted'));root.append(card);
  }
  root.append(element('h3',`UMG runtime: ${row.umg.status}`),element('p',row.umg.reason,'muted'));
  if(row.umg.runtime)root.append(element('p',`Compiler: ${row.umg.runtime.compilerExecution}. Fresh candidates accepted: ${row.umg.acceptedCount}; quarantined: ${row.umg.quarantinedCount}.`,'muted'));
