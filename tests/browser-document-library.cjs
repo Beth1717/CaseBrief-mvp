@@ -13,10 +13,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=requ
  assert.equal(await page.locator('tbody tr').count(),50);
  await page.getByRole('button',{name:'Next documents',exact:true}).click();assert.match(await page.locator('tbody').innerText(),/Fictional record 50/);
  await page.getByRole('textbox',{name:'Search permitted documents'}).fill('Fictional record 4999');assert.equal(await page.locator('tbody tr').count(),1);
- await page.getByRole('button',{name:'Fictional record 4999',exact:true}).click();assert.match(await page.locator('#detailRoot').innerText(),/Synthetic load text 4999/);await page.keyboard.press('Escape');
+ await page.getByRole('button',{name:'Fictional record 4999',exact:true}).click();assert.match(await page.locator('#detailRoot').innerText(),/Synthetic load text 4999/);await page.getByRole('button',{name:'Mark reviewed',exact:true}).click();await page.keyboard.press('Escape');
+ await page.reload();await page.evaluate(()=>showView('documents'));
+ assert.equal(await page.evaluate(()=>data.documents.length),5001);assert.equal(await page.evaluate(()=>data.documents.find(d=>d.id==='scale-4999').reviewed),true);
  await page.selectOption('#securityRole','investigator');
  await page.getByRole('textbox',{name:'Search permitted documents'}).fill('PRIVATE-CANARY');assert.doesNotMatch(await page.locator('tbody').innerText(),/PRIVATE-CANARY/);
  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
- assert.deepEqual(errors,[]);console.log(JSON.stringify({check:'PASS browser document library',documents:5000,rowsRendered:50,renderMs:timing,covered:'page, filter, full source drawer, restricted search and mobile'}));
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({check:'PASS browser document library',documents:5000,rowsRendered:50,renderMs:timing,covered:'page, filter, full source drawer, reviewed-state persistence after reload, restricted search and mobile'}));
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
