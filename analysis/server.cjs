@@ -14,7 +14,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
  const server=http.createServer(async(req,res)=>{
   const origin=`http://127.0.0.1:${server.address().port}`;
   const send=(status,data)=>{if(res.destroyed)return;res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data))};
-  const localSession=()=>{const provided=req.headers['x-casebrief-token'];return req.headers.origin===origin&&typeof provided==='string'&&/^[0-9a-f]{64}$/.test(provided)&&timingSafeEqual(Buffer.from(provided),Buffer.from(token))};
+  const localSession=()=>{const provided=req.headers['x-casebrief-token'];return (!req.headers.origin||req.headers.origin===origin)&&typeof provided==='string'&&/^[0-9a-f]{64}$/.test(provided)&&timingSafeEqual(Buffer.from(provided),Buffer.from(token))};
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
   if(req.headers.host!==new URL(origin).host)return send(403,{error:'LOOPBACK_HOST_REQUIRED'});
   const route=req.url.split('?')[0];
@@ -38,7 +38,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
    try{return send(200,asWorkbenchRow(reviewHost.get(decodeURIComponent(route.slice('/api/reviews/'.length)))))}catch(e){return send(404,{error:e.message||'INVOCATION_NOT_FOUND'})}
   }
   if(req.method!=='POST'||!['/api/analyse','/api/review','/api/invalidate'].includes(route))return send(404,{error:'NOT_FOUND'});
-  if(req.headers['content-type']!=='application/json'||!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});
+  if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'||!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});
   if(active>=2)return send(429,{error:'BUSY'});
   active++;let size=0;const chunks=[];let timer;
   try{
