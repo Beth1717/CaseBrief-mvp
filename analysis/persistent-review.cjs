@@ -36,7 +36,7 @@ class PersistentAnalysisReview{
    let status='REJECTED',findings=[],event='result.rejected',code=errorCode;
    const expired=context.expiresAt&&Date.parse(context.expiresAt)<=Date.now();
    if(!context.active||this.invalidatedRuns.has(context.clientRunId)||expired){status='INVALIDATED';event='result.invalidated';code='HOST_CONTEXT_CHANGED'}
-   else if(!code&&umg?.status==='SUCCEEDED'){status='PENDING_HUMAN_REVIEW';event='result.pending_review';findings=clone(current.analysis.findings).map(f=>({...f,reviewState:'HUMAN_REVIEW_REQUIRED'}))}
+   else if(!code&&['SUCCEEDED','NOT_CONFIGURED'].includes(umg?.status)){status='PENDING_HUMAN_REVIEW';event='result.pending_review';findings=clone(current.analysis.findings).map(f=>({...f,reviewState:'HUMAN_REVIEW_REQUIRED'}))}
    else if(!code)code='UMG_'+(umg?.status||'NOT_RUN');
    const next={...current,status,revision:current.revision+1,version:current.revision+1,findings,umg:clone(umg||{status:'ERROR',dispatchCount:0}),responseDigest,errorCode:code,updatedAt:new Date().toISOString()};
    return {record:next,event,data:{code,responseDigest,sourceSnapshotDigest:current.sourceSnapshotDigest,proposalCount:findings.length,umgStatus:next.umg.status,dispatchCount:next.umg.dispatchCount||0}};
