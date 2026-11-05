@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "casebrief.workflow-research.v2",
+  "title": "CaseBrief — short workflow and adoption survey",
+  "questions": [
+    {"id":"role_period","label":"What role, professional status and work period do your answers represent?","type":"text","hint":"Current/former/retired; jurisdiction; personal or office-wide experience. No names needed."},
+    {"id":"tools_fit","label":"Which tools work well today, and where do you still work outside them?","type":"textarea","hint":"CMS, documents, spreadsheets, research tools and any duplicate-entry burden. None/unknown is useful."},
+    {"id":"priority","label":"Which one task would be most useful to improve?","type":"select","options":["Finding facts and original source passages","Detecting missing records","Comparing inconsistent or exculpatory material","Taking over or handing off a case","Client/family status updates","Deadline and task tracking","Drafting and formatting","No unmet need","Other / explain below","Unknown"]},
+    {"id":"burden","label":"How often did that task cause difficulty in your most recent 30 working days, and roughly how much time did it take?","type":"textarea","hint":"Count separate situations; include 0 or unknown. Give measured/estimated hours per week, including verification/corrections, and one observed consequence without case details."},
+    {"id":"record_scale","label":"What record sizes and formats should a useful evaluation represent?","type":"text","hint":"Approximate typical and unusually large document counts, pages or video hours; PDF/audio/video/text; scanned/OCR or languages. Unknown is fine."},
+    {"id":"verification","label":"What evidence would you need before relying on an output?","type":"textarea","hint":"For example: exact original passage/version; whether the passage supports the statement; uncertainty and contrary facts; named human approval; who did what and why. Describe unacceptable misses or false alerts."},
+    {"id":"hardware_privacy","label":"What device, accessibility, offline or approved-data requirements would constrain use?","type":"textarea","hint":"Windows/Mac/mobile; available hardware; network restrictions; approved hosting/retention/provider rules. No credentials, client data or internal security details."},
+    {"id":"integration","label":"What is the minimum integration needed to avoid another disconnected tool?","type":"textarea","hint":"Approved import/export, CMS connection, source of truth, Word/PDF workflow, handoffs, migration limits; or no integration needed."},
+    {"id":"procurement","label":"Who would approve a fictional-data evaluation, a real-data pilot and a purchase, and how long might each take?","type":"textarea","hint":"Roles/offices only; workflow owner, IT/security, procurement and budget owner. Note policy/contract blockers, training capacity and budget cycle. Unknown is valid."},
+    {"id":"budget","label":"What post-pilot spending and onboarding effort could realistically be considered?","type":"textarea","hint":"Your own unprompted estimate: USD amount/range, per user/month or office/year, seats, one-time costs, approval authority and basis. Zero/unknown is useful; no purchase commitment."},
+    {"id":"evaluation","label":"What would make a short fictional-case test useful, and would you consider participating?","type":"textarea","hint":"Success measures, stop conditions, available review time and a current-workflow comparison. Interest does not commit an office or authorise client data."}
+  ]
+}
