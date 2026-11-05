@@ -12,9 +12,9 @@ function makeUmg({mode='success',delay=0,onRequest=()=>{}}={}){
   let response=clone(fixture);response.requestId=request.requestId;response.correlationId=request.correlationId;
   response.authorization.matterId=request.hostContext.matterId;response.authorization.decisionId=request.hostContext.authorization.decisionId;
   response.authorization.status=request.hostContext.authorization.status;
-  response.result.acceptedFindings=response.result.acceptedFindings.slice(0,1).map(f=>({...f,sourceRefs:request.sources.map(s=>s.sourceId),reviewState:'HUMAN_REVIEW_REQUIRED'}));
-  response.result.quarantinedFindings=[];response.result.expectations=[];response.provenance.sourceIds=request.sources.map(s=>s.sourceId);
-  response.effects={dispatchCount:0,executed:[],proposed:[]};
+  response.result.acceptedFindings=response.result.acceptedFindings.slice(0,1).map(f=>({...f,findingId:request.candidateFindings[0]?.findingId||f.findingId,category:request.candidateFindings[0]?.category||f.category,statement:request.candidateFindings[0]?.statement||f.statement,sourceRefs:request.sources.map(s=>s.sourceId),reviewState:'HUMAN_REVIEW_REQUIRED'}));
+  response.result.quarantinedFindings=[];response.result.expectations=[];response.result.unresolvedItems=[];response.provenance.sourceIds=request.sources.map(s=>s.sourceId);response.auditEvents=response.auditEvents.map(e=>({...e,requestId:request.requestId,auditId:request.auditId}));
+  response.effects={dispatchCount:0,executed:[],proposed:[]};const validation=adapter.validateResponse(response,request);if(!validation.valid)console.error('MOCK_UMG_RESPONSE_INVALID',validation.errors);
   if(mode==='wrong-id')response.requestId='wrong-request-id';
   if(mode==='needs-input'){response.status='NEEDS_INPUT';response.result.acceptedFindings=[];response.result.quarantinedFindings=[];response.result.unresolvedItems=[];response.provenance.sourceIds=[];}
   if(mode==='delay')return setTimeout(()=>{res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify(response))},delay);
@@ -41,7 +41,7 @@ test('host review persists decisions, verifies UMG response, invalidates stale r
  try{
   app=await startWork({db,umgEndpoint:endpoint});
   const runId='run-persist-1',first=await post(app.base,app.token,'/api/analyse',input(runId));
-  assert.equal(first.status,200);assert.equal(first.value.status,'PENDING_HUMAN_REVIEW');
+  assert.equal(first.status,200);assert.equal(first.value.status,'PENDING_HUMAN_REVIEW',JSON.stringify(first.value.umg));
   assert.equal(first.value.result.findings.length,1);assert.equal(first.value.umg.status,'SUCCEEDED');assert.equal(first.value.umg.dispatchCount,0);
   const invocationId=first.value.result.invocationId,findingId=first.value.result.findings[0].findingId;
   assert.equal(first.value.result.findings[0].reviewState,'HUMAN_REVIEW_REQUIRED');
