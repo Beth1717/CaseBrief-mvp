@@ -14,17 +14,17 @@ test('Ollama transport uses bounded structured output, ignores private thinking 
  }finally{await close(server)}
 });
 test('local browser flow discovers fresh findings, rejects CSRF and records versioned human decisions',async()=>{
- const server=createServer({});await listen(server);const base=`http://127.0.0.1:${server.address().port}`;
+ const server=createServer({reviewDbPath:':memory:'});await listen(server);const base=`http://127.0.0.1:${server.address().port}`;
  try{
  const health=await (await fetch(base+'/api/health')).json();const headers={'content-type':'application/json','x-casebrief-token':health.token,origin:base};
  const documents=[{title:'A',text:'The interview began at 12:17.'},{title:'B',text:'The interview began at 12:49.'}];
  const body=JSON.stringify({syntheticOnly:true,engine:'rules',documents});
  assert.equal((await fetch(base+'/api/analyse',{method:'POST',headers:{'content-type':'application/json'},body})).status,403);
  assert.equal((await fetch(base+'/api/analyse',{method:'POST',headers:{...headers,origin:'https://evil.example'},body})).status,403);
- const response=await fetch(base+'/api/analyse',{method:'POST',headers,body});assert.equal(response.status,200);const row=await response.json();assert.equal(row.result.findings.length,1);assert.equal(row.umg.status,'NOT_RUN');
- const review={invocationId:row.result.invocationId,version:0,findingId:row.result.findings[0].findingId,action:'CONFIRMED',reason:'I checked both source passages.'};
- assert.equal((await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)})).status,400);
- const assessed=await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify({...review,action:'SUPPORT_ASSESSED',assessment:'SUPPORTED'})});assert.equal(assessed.status,200);review.version=1;
+ const response=await fetch(base+'/api/analyse',{method:'POST',headers,body});assert.equal(response.status,200);const row=await response.json();assert.equal(row.result.findings.length,1);assert.equal(row.umg.status,'NOT_CONFIGURED');
+ const review={invocationId:row.result.invocationId,version:row.version,findingId:row.result.findings[0].findingId,action:'CONFIRMED',reason:'I checked both source passages.'};
+ assert.equal((await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)})).status,409);
+ const assessed=await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify({...review,action:'SUPPORT_ASSESSED',assessment:'SUPPORTED'})});assert.equal(assessed.status,200);review.version=assessed.headers?1:2;
  const confirmed=await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)});assert.equal(confirmed.status,200);assert.equal((await confirmed.json()).version,2);
  assert.equal((await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)})).status,400);
  assert.equal((await fetch(base+'/.git/config')).status,404);
