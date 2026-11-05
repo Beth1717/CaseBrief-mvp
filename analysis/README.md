@@ -1,126 +1,139 @@
 # Local fictional document analysis
 
 Run `npm ci --ignore-scripts`, then `npm run start:analysis`. Open
-`http://127.0.0.1:8780/analysis/`. The same server serves the existing demo at `/`;
-its local top-bar link opens the document comparison workspace. No public browser
-connection policy is relaxed. Nothing is deployed by this command.
+`http://127.0.0.1:8780/analysis/`. The same loopback server serves the existing
+synthetic CaseBrief demo at `/`; its local top-bar link opens this workspace. The
+public browser demo retains its `connect-src 'none'` policy. Nothing is deployed.
 
 ## What works
 
 - Enter two to twelve fictional text extracts; documents are not a fixed replay.
-- The explicit-time method detects differing 24-hour times for matching event labels
-  using statements such as `The traffic stop began at 22:14.` It does not understand
-  arbitrary documents or establish legal contradictions. Every empty rules result is
-  `NEEDS_INPUT`, never a claim that the record is consistent.
-- The local Ollama client sends bounded JSON-schema requests, rejects incomplete,
-  malformed or tool-calling responses, and returns structured factual candidates.
-- Exact unique quotes are located in authorised source text and converted to UTF-8
-  byte spans with SHA-256 versions. Invented/ambiguous quotes and unknown sources
-  quarantine the candidate. Citation validity does not establish semantic truth.
-- Current host identity, grant and source snapshot can be rechecked after inference
-  through `currentRequest` in the engine. The local server owns its fixed fictional
-  session; this is not production login or multi-tenant authorisation.
-- Findings remain proposals; explicit user confirmation, dismissal and reopening
-  require a reason and optimistic review version. Download a JSON review receipt.
-- Insufficient evidence, quarantine, failure and an actual empty successful model
-  comparison remain distinct. No model output performs a human review action.
+- The explicit-time method detects differing 24-hour times for matching event labels.
+  It does not understand arbitrary documents or establish legal contradictions.
+  Every empty rules result is `NEEDS_INPUT`, never a claim that the record is consistent.
+- The optional local Ollama client sends bounded JSON-schema requests and rejects
+  malformed, incomplete or tool-calling responses. No model is bundled.
+- Exact unique quotations are located in authorised source text and converted to
+  UTF-8 byte spans with SHA-256 source versions. Invented, ambiguous or unknown
+  citations quarantine a candidate. Citation validity is not semantic truth.
+- The actual revision-2 adapter validates request/response schemas, invocation
+  identity, matter and authorization bindings, source membership, runtime receipts,
+  private-reasoning exclusion and zero external dispatch.
+- The browser receives only proposals that pass CaseBrief's source/citation checks
+  and the configured UMG response gate. All remain `HUMAN_REVIEW_REQUIRED`.
+  UMG acceptance is not attorney approval or legal correctness.
+- The workbench distinguishes CaseBrief analysis proposals from UMG accepted and
+  quarantined findings. Fresh candidates quarantined by UMG are never described as
+  UMG-validated; the UI displays the separate UMG status and reason.
+- Human passage-support assessment, confirmation, dismissal and reopening require
+  an explicit reason and optimistic revision. Confirmation requires `SUPPORTED`
+  passage assessment. Changing assessment after confirmation reopens the finding.
+- Source edits send a host invalidation for the associated client run. Late UMG
+  results are rejected from promotion after invalidation.
+- The local SQLite review ledger persists invocation metadata, proposals,
+  dispositions and append-only hash-chained audit events across browser reloads
+  and server restarts. The database defaults to
+  `readiness/results/casebrief-synthetic-review.sqlite`; override with
+  `CASEBRIEF_REVIEW_DB`. SQLite files are git-ignored.
+- After a server restart, historical receipts remain inspectable but read-only:
+  the prior local session/source authorization context is intentionally not
+  restored. A new comparison establishes a new review context.
 
-## Use a locally installed model
+## Run with the actual local UMG service
 
-No model, model weights or API key are bundled. Choose a local Ollama model already
-installed on the machine and set its exact model name:
+Start Chris's separately supplied and checksum-verified local package on loopback
+port 8767. Do not copy its vendor runtime into this repository. Then start CaseBrief:
+
+```bash
+CASEBRIEF_UMG_ENDPOINT='http://127.0.0.1:8767/v0.1/record-consistency' npm run start:analysis
+```
+
+Only the exact `http://127.0.0.1/v0.1/record-consistency` route is accepted by
+the adapter. The CaseBrief host request uses revision 2 unchanged. The separate
+`casebrief.analysis.result.v1` structure is CaseBrief-owned and does not modify
+the UMG wire contract.
+
+### Known UMG limitation
+
+Chris's November 4 response confirms that the current UMG release provides
+governance/transport validation, not general semantic contradiction discovery.
+The maintained service may quarantine fresh arbitrary candidates as
+`UNREVIEWED_OR_MUTATED_FINDING`. CaseBrief can preserve a separately labelled
+source-linked proposal for human review, but must not describe that proposal as
+UMG-validated. The original pinned sample is not evidence of general finding quality.
+
+## Local Ollama model
+
+No model, model weights or API key are bundled. To use a model already installed
+locally:
 
 ```bash
 CASEBRIEF_OLLAMA_MODEL='your-installed-model:tag' npm run start:analysis
 ```
 
 The endpoint defaults to `http://127.0.0.1:11434/api/chat`. Optional
-`CASEBRIEF_OLLAMA_ENDPOINT` accepts only the explicit 127.0.0.1 HTTP `/api/chat`
-route. The client never downloads a model or uses a cloud endpoint. The operator
-must independently ensure that the selected Ollama model is local, including its
-runtime configuration; a local URL alone does not prove that every possible
-model is offline. The explicit `:cloud` suffix is rejected.
+`CASEBRIEF_OLLAMA_ENDPOINT` accepts only the explicit loopback HTTP `/api/chat`
+route. The client does not download a model or use a cloud endpoint. The operator
+must independently verify the installed model and Ollama runtime are local; a
+loopback URL alone does not prove all inference is offline. The explicit `:cloud`
+suffix is rejected.
 
-The selected model must support structured output and the configured context
-window. Inputs are capped at 48,000 UTF-8 bytes; that byte limit is not a tokenizer
-proof. Models can still miss or misinterpret facts. Validate the exact installed
-model on fictional packets before claiming quality or enabling any client data.
-No real model inference was run during this implementation because no local model
-was configured in the build environment. HTTP protocol tests use an explicit test
-double and do not count as model-quality tests.
+Inputs are capped at 48,000 UTF-8 bytes; that is not a tokenizer proof. Model
+outputs can miss or misinterpret facts. No live model-quality result is claimed.
+HTTP protocol tests use a test double and do not count as model-quality evidence.
 
-Official interface references:
-- https://docs.ollama.com/api/chat
-- https://docs.ollama.com/capabilities/structured-outputs
+## Persistence and security boundary
 
-## Optional actual UMG service
+This is a local synthetic-development ledger, not a production audit system.
+The database uses SQLite transactions, WAL/full synchronous settings, update/delete
+triggers on audit events and a hash chain. This makes accidental alteration
+detectable within the local store; it is not a signed, externally anchored or
+independently tamper-proof audit service.
 
-Start the supplied external October 30 working release in another terminal using
-its `tools/start_local.py`. Do not copy its vendor code into this repository.
-Then start CaseBrief with:
+The local session token and fixed local actor are not production authentication.
+There is no server-side multi-tenant identity, MFA, SSO, workload identity, TLS
+termination, managed secrets, hosted tenant isolation, backup/retention service,
+incident response, penetration test or security certification. The review ledger
+stores synthetic proposal quotations and local review reasons. Do not place real
+client data in it.
 
-```bash
-CASEBRIEF_UMG_ENDPOINT='http://127.0.0.1:8767/v0.1/record-consistency' npm run start:analysis
-```
-
-The bridge sends the unchanged revision-2 request shape and checks the real response
-with `integration/umg-runtime-rev2.cjs`. It does not fabricate a compiler receipt or
-convert a UMG quarantine into approval. Analysis candidates and UMG results are
-reported separately. The host analysis envelope `casebrief.analysis.result.v1` is a
-separate CaseBrief structure, not a modification of revision 2 or a new signed
-UMG contract.
-
-### Reproduced external-runtime limitation
-
-The original full ZIP matched SHA-256
-`35c87ae0c92a9b48fe8d77d1d638620470f46c796885957f495284fad87a8476` and its
-908-entry delivery manifest passed verification before execution. Through the
-actual service the original sample returned SUCCEEDED with compiler EXECUTED.
-A fresh pair, `The fictional interview began at 03:08.` and
-`The fictional interview began at 04:19.`, produced one new CaseBrief rule candidate.
-The actual UMG compiler executed, but accepted zero and quarantined one with
-`UNREVIEWED_OR_MUTATED_FINDING`. Its source gates acceptance against the single
-`REVIEWED_FINDINGS['i1']` sample plus matching pinned source content.
-
-That is a concrete UMG limitation, not a transport failure. The maintainer must
-agree and implement a general candidate-validation path if fresh findings are to
-be accepted by UMG. Structural validation still must not be described as factual
-or legal approval. Until then this workspace supports CaseBrief proposals with a
-visible pending UMG result, not qualified end-to-end approval of arbitrary findings.
+Text extraction/OCR, PDF page mapping, full-case retrieval, authenticated
+persistent backend, production identity, provider qualification, hosted operations,
+attorney validation and Idaho template/source validation remain open. This
+workbench does not change CRI, file court documents, send messages, or perform
+external case mutations. Family recipients do not receive attorney work product.
 
 ## Checks
 
 ```bash
 npm run test:analysis
 node analysis/tests/browser.cjs
+node analysis/tests/persistent-review.test.cjs
+npm run test:host
+npm run test:boundary
 npm run test:runtime
-# Only with the real supplied service running:
-node analysis/tests/real-umg.cjs
 ```
 
-The unit/HTTP tests cover fresh source values, uncertain/consistent/unrelated
-inputs, hostile source instructions in the rules path, Unicode quote coordinates,
-unsupported citations, revoked/changed host snapshots, nested private reasoning,
-model protocol errors/timeouts, CSRF, explicit human events and stale decisions.
-The browser test covers actual entry, source display, review, JSON download and
-mobile layout. These checks do not establish model prompt-injection robustness or
-attorney validation.
+The analysis suite covers source snapshots, exact quote coordinates, unsupported
+citations, private-reasoning rejection, local model protocol errors/timeouts,
+human review and passage-support transitions. The persistent integration tests
+exercise actual revision-2 request/response validation, durable dispositions,
+audit-chain verification, invalid response rejection, `NEEDS_INPUT`, source
+invalidation during an asynchronous runtime call, and read-only historical access
+after restart. Browser checks cover actual entry, source display, review, receipt
+download and mobile layout.
 
-## Boundaries and next implementation
+## Evaluation and attorney review
 
-This is a local synthetic development component. Source records and review events
-are held in process memory, capped per session and lost on restart. Downloaded
-receipts are mutable snapshots, not a durable audit ledger. Text extraction/OCR,
-PDF page mappings, full-case retrieval, an authenticated persistent backend,
-production tenant isolation and selected model/provider qualification remain open.
-It does not change CRI, import candidates into existing authoritative case state,
-or share attorney work product with family recipients. The main demo remains
-synthetic and its `connect-src 'none'` policy remains intact.
+Run `npm run evaluate:analysis` for observed rules output on the versioned fictional
+packet set, or `npm run evaluate:analysis -- ollama` only after installing and
+configuring a suitable local model. Draft review questions are not sent to the
+provider. Precision, recall, false-positive/miss rates and legal accuracy remain
+null until independent adjudication. The exculpatory-lab and unsupported-allegation
+packets deliberately expose current coverage limits. The packet set is drafted,
+not attorney-labelled.
 
-## Verification follow-up
-
-Quote linkage is automatic; proposition support requires an explicit local human assessment (`SUPPORTED`, `NOT_SUPPORTED`, `UNCERTAIN`). Confirming a candidate requires a current `SUPPORTED` assessment and a reason. Reassessing a confirmed candidate reopens it. Every review event has an ID and the downloaded receipt retains the separate verification states. Local human assessment is not verified attorney signoff; `attorneyValidation` stays `NOT_ESTABLISHED`.
-
-Run `npm run evaluate:analysis` for observed rules output on the versioned fictional packet set, or `npm run evaluate:analysis -- ollama` only after installing/configuring a suitable local model. The runner supplies source text, never draft review questions, to the provider. Scores remain null until independent adjudication; known out-of-coverage tasks remain visible as NEEDS_INPUT. Recipient-release packets are kept out of the analysis runner and belong in permission tests.
-
-The time comparator abstains when both direct assertions identify different ISO dates. That narrow guard does not resolve natural-language dates, event identity or clock accuracy. This is still a bounded development method, not general record understanding.
+Quote linkage, human proposition-support assessment and attorney validation are
+separate. Local reviewer identity is self-asserted; `attorneyValidation` remains
+`NOT_ESTABLISHED`. A passing synthetic test is not an attorney approval or
+production readiness decision.
