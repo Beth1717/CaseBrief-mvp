@@ -10,7 +10,7 @@ const ROOT=path.resolve(__dirname,'..');
 const demoFiles=new Set(['index.html',...fs.readdirSync(ROOT).filter(name=>/\.(js|css)$/.test(name)),'integration/host-controls.js']);
 const allowed=new Map([['/analysis/', ['analysis/workbench.html','text/html']],['/analysis/workbench.js',['analysis/workbench.js','text/javascript']],['/analysis/workbench.css',['analysis/workbench.css','text/css']]]);
 function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=process.env.CASEBRIEF_OLLAMA_ENDPOINT,umgEndpoint=process.env.CASEBRIEF_UMG_ENDPOINT,reviewDbPath=process.env.CASEBRIEF_REVIEW_DB||path.join(ROOT,'readiness','results','casebrief-synthetic-review.sqlite')}={}){
- const token=randomBytes(32).toString('hex'),reviewHost=new PersistentAnalysisReview({filename:reviewDbPath,syntheticOnly:true});let active=0;
+ if(reviewDbPath!==':memory:')fs.mkdirSync(path.dirname(path.resolve(reviewDbPath)),{recursive:true});\n const token=randomBytes(32).toString('hex'),reviewHost=new PersistentAnalysisReview({filename:reviewDbPath,syntheticOnly:true});let active=0;
  const server=http.createServer(async(req,res)=>{
   const origin=`http://127.0.0.1:${server.address().port}`;
   const send=(status,data)=>{if(res.destroyed)return;res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data))};
