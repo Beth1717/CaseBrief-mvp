@@ -10,7 +10,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,7 +23,14 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npx --no-install playwright install --with-deps chromium
-      - name: Run all existing and remediation suites
+      - name: Run new document analysis tests
+        run: npm run test:analysis
+      - name: Record synthetic evaluation and document benchmark
+        run: |
+          mkdir -p readiness/results
+          npm run --silent evaluate:analysis > readiness/results/analysis-coverage.json
+          npm run --silent benchmark:documents > readiness/results/document-benchmark.json
+      - name: Run all existing, UMG host, ingestion, and analysis browser suites
         shell: bash
         run: |
           set -u
@@ -37,9 +44,13 @@ jobs:
           done
           failed=0
           for suite in \
+            analysis/tests/browser.cjs \
             tests/state.cjs \
             tests/ingestion.cjs \
             tests/browser-ingestion.cjs \
+            tests/document-library.cjs \
+            tests/browser-document-library.cjs \
+            tests/browser-research-survey.cjs \
             tests/review-receipt.cjs \
             tests/pilot-scorecard.cjs \
             tests/browser-review-receipt.cjs \
@@ -76,4 +87,5 @@ jobs:
           path: |
             validation-receipt.txt
             server.log
+            readiness/results/
           if-no-files-found: ignore
