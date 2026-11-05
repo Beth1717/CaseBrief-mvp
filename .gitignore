@@ -6,3 +6,5 @@ validation-receipt.txt
 *.sqlite-wal
 
 __pycache__/
+
+readiness/results/
