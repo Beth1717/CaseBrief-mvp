@@ -1,37 +1,44 @@
 'use strict';
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
-const {randomBytes,randomUUID,timingSafeEqual}=require('node:crypto');
-const {buildRequest,invokeLocal}=require('../integration/umg-runtime-rev2.cjs');
+const {randomBytes,timingSafeEqual}=require('node:crypto');
+const adapter=require('../integration/umg-runtime-rev2.cjs');
+const {buildRequest,invokeLocal}=adapter;
 const {analyse,rulesProvider,hash,AnalysisError}=require('./engine.cjs');
-const {verification}=require('./verification.cjs');
 const {createOllamaProvider}=require('./ollama.cjs');
+const {PersistentAnalysisReview}=require('./persistent-review.cjs');
 const ROOT=path.resolve(__dirname,'..');
 const demoFiles=new Set(['index.html',...fs.readdirSync(ROOT).filter(name=>/\.(js|css)$/.test(name)),'integration/host-controls.js']);
 const allowed=new Map([['/analysis/', ['analysis/workbench.html','text/html']],['/analysis/workbench.js',['analysis/workbench.js','text/javascript']],['/analysis/workbench.css',['analysis/workbench.css','text/css']]]);
-function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=process.env.CASEBRIEF_OLLAMA_ENDPOINT,umgEndpoint=process.env.CASEBRIEF_UMG_ENDPOINT}={}){
- const token=randomBytes(32).toString('hex'),records=new Map();let active=0;
+function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=process.env.CASEBRIEF_OLLAMA_ENDPOINT,umgEndpoint=process.env.CASEBRIEF_UMG_ENDPOINT,reviewDbPath=process.env.CASEBRIEF_REVIEW_DB||path.join(ROOT,'readiness','results','casebrief-synthetic-review.sqlite')}={}){
+ const token=randomBytes(32).toString('hex'),reviewHost=new PersistentAnalysisReview({filename:reviewDbPath,syntheticOnly:true});let active=0;
  const server=http.createServer(async(req,res)=>{
   const origin=`http://127.0.0.1:${server.address().port}`;
   const send=(status,data)=>{if(res.destroyed)return;res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data))};
+  const localSession=()=>{const provided=req.headers['x-casebrief-token'];return req.headers.origin===origin&&typeof provided==='string'&&/^[0-9a-f]{64}$/.test(provided)&&timingSafeEqual(Buffer.from(provided),Buffer.from(token))};
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
   if(req.headers.host!==new URL(origin).host)return send(403,{error:'LOOPBACK_HOST_REQUIRED'});
-  const route=req.url;
+  const route=req.url.split('?')[0];
   if(req.method==='GET'){
-   const demoPath=route==='/'?'index.html':route.split('?')[0].slice(1);
+   const demoPath=route==='/'?'index.html':route.slice(1);
    if(demoFiles.has(demoPath)){
     res.setHeader('Content-Security-Policy',"default-src 'self' blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
     const mime=demoPath.endsWith('.html')?'text/html':demoPath.endsWith('.css')?'text/css':'text/javascript';
-    res.writeHead(200,{'content-type':mime,'cache-control':'no-store'});
-    return res.end(fs.readFileSync(path.join(ROOT,demoPath)));
+    res.writeHead(200,{'content-type':mime,'cache-control':'no-store'});return res.end(fs.readFileSync(path.join(ROOT,demoPath)));
    }
   }
   if(req.method==='GET'&&allowed.has(route)){
    const [name,mime]=allowed.get(route);res.writeHead(200,{'content-type':mime,'cache-control':'no-store'});return res.end(fs.readFileSync(path.join(ROOT,name)));
   }
-  if(req.method==='GET'&&route==='/api/health')return send(200,{syntheticOnly:true,token,modelConfigured:!!model,model:model||null,umgConfigured:!!umgEndpoint,storedInvocations:records.size});
-  if(req.method!=='POST'||!['/api/analyse','/api/review'].includes(route))return send(404,{error:'NOT_FOUND'});
-  const provided=req.headers['x-casebrief-token'];
-  if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'||typeof provided!=='string'||!/^[0-9a-f]{64}$/.test(provided)||!timingSafeEqual(Buffer.from(provided),Buffer.from(token)))return send(403,{error:'LOCAL_SESSION_REQUIRED'});
+  if(req.method==='GET'&&route==='/api/health')return send(200,{syntheticOnly:true,token,modelConfigured:!!model,model:model||null,umgConfigured:!!umgEndpoint,storedInvocations:reviewHost.list().length,persistence:'LOCAL_SQLITE_SYNTHETIC_ONLY',productionAuthentication:false});
+  if(req.method==='GET'&&route==='/api/reviews'){
+   if(!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});return send(200,{reviews:reviewHost.list()});
+  }
+  if(req.method==='GET'&&route.startsWith('/api/reviews/')){
+   if(!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});
+   try{return send(200,asWorkbenchRow(reviewHost.get(decodeURIComponent(route.slice('/api/reviews/'.length)))))}catch(e){return send(404,{error:e.message||'INVOCATION_NOT_FOUND'})}
+  }
+  if(req.method!=='POST'||!['/api/analyse','/api/review','/api/invalidate'].includes(route))return send(404,{error:'NOT_FOUND'});
+  if(req.headers['content-type']!=='application/json'||!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});
   if(active>=2)return send(429,{error:'BUSY'});
   active++;let size=0;const chunks=[];let timer;
   try{
@@ -41,48 +48,53 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
     req.on('end',()=>{clearTimeout(timer);try{resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')))}catch{reject(new AnalysisError('INVALID_JSON'))}});
     req.on('error',()=>reject(new AnalysisError('REQUEST_INTERRUPTED')));
    });
+   if(route==='/api/invalidate')return send(200,reviewHost.invalidateClientRun(input.clientRunId));
    if(route==='/api/review'){
-    const row=records.get(input.invocationId);
-    if(!row||!Number.isInteger(input.version)||input.version!==row.version||!row.result.findings.some(f=>f.findingId===input.findingId)||!['CONFIRMED','DISMISSED','REOPENED','SUPPORT_ASSESSED'].includes(input.action)||typeof input.reason!=='string'||!input.reason.trim()||input.reason.length>1000)throw new AnalysisError('INVALID_REVIEW_OR_STALE_VERSION');
-    // Local explicit user event only; no attorney qualification is implied.
-    const finding=row.result.findings.find(f=>f.findingId===input.findingId);
-    const prior=verification(finding,row.events);
-    if(input.action==='SUPPORT_ASSESSED'&&!['SUPPORTED','NOT_SUPPORTED','UNCERTAIN'].includes(input.assessment))throw new AnalysisError('SUPPORT_ASSESSMENT_REQUIRED');
-    if(input.action==='CONFIRMED'&&prior.propositionSupport!=='SUPPORTED')throw new AnalysisError('SUPPORTED_PASSAGES_REQUIRED');
-    if(row.events.length>=98)throw new AnalysisError('REVIEW_HISTORY_LIMIT');
-    row.events.push({id:randomUUID(),at:new Date().toISOString(),actor:'local-workbench-user',findingId:input.findingId,action:input.action,reason:input.reason.trim(),...(input.action==='SUPPORT_ASSESSED'?{assessment:input.assessment}:{})});
-    if(input.action==='SUPPORT_ASSESSED'&&prior.disposition==='CONFIRMED')row.events.push({id:randomUUID(),at:new Date().toISOString(),actor:'local-workbench-system',findingId:input.findingId,action:'REOPENED',reason:'Passage assessment changed; confirmation must be recorded again.'});
-    finding.verification=verification(finding,row.events);row.version++;
-    return send(200,{version:row.version,events:row.events,findings:row.result.findings});
+    const updated=reviewHost.review(input);const row=reviewHost.get(input.invocationId);
+    return send(200,{version:row.version,events:row.events,findings:row.findings,hostAudit:row.hostAudit});
    }
-   if(input.syntheticOnly!==true||!['rules','ollama'].includes(input.engine)||!Array.isArray(input.documents)||input.documents.length<2||input.documents.length>12)throw new AnalysisError('FICTIONAL_DOCUMENTS_REQUIRED');
-   if(records.size>=100)throw new AnalysisError('LOCAL_SESSION_FULL_RESTART_TO_CLEAR');
-   const matterId='fictional-'+randomUUID(),now=Date.now();
+   if(input.syntheticOnly!==true||!['rules','ollama'].includes(input.engine)||!Array.isArray(input.documents)||input.documents.length<2||input.documents.length>12||typeof input.clientRunId!=='string'||!input.clientRunId)throw new AnalysisError('FICTIONAL_DOCUMENTS_REQUIRED');
+   const matterId='fictional-'+require('node:crypto').randomUUID(),now=Date.now();
    const sources=input.documents.map((doc,i)=>{
-    if(typeof doc.text!=='string'||!doc.text.trim()||typeof doc.title!=='string'||!doc.title.trim()||doc.title.length>120)throw new AnalysisError('INVALID_DOCUMENT');
+    if(typeof doc.text!=='string'||!doc.text.trim()||Buffer.byteLength(doc.text)>20000||typeof doc.title!=='string'||!doc.title.trim()||doc.title.length>120)throw new AnalysisError('INVALID_DOCUMENT');
     return {sourceId:'source-'+(i+1),matterId,kind:'fictional_text',locator:'synthetic:source-'+(i+1),extract:doc.text,contentHash:hash(doc.text),reviewedByHost:true};
    });
-   const request=buildRequest({syntheticOnly:true,hostContext:{host:'CaseBrief',tenantId:'local-synthetic-workbench',matterId,operation:'record_consistency_review',actor:{id:'local-workbench-user',type:'human',role:'case_owner_lead_attorney',verifiedByHost:true},authorization:{decisionId:randomUUID(),status:'ALLOW',scopes:['case_view','ai_use'],authority:'CaseBrief',expiresAt:new Date(now+120000).toISOString()}},sources});
+   const request=buildRequest({syntheticOnly:true,hostContext:{host:'CaseBrief',tenantId:'local-synthetic-workbench',matterId,operation:'record_consistency_review',actor:{id:'local-workbench-user',type:'human',role:'case_owner_lead_attorney',verifiedByHost:true},authorization:{decisionId:require('node:crypto').randomUUID(),status:'ALLOW',scopes:['case_view','ai_use'],authority:'CaseBrief',expiresAt:new Date(now+120000).toISOString()}},sources});
    const provider=input.engine==='rules'?rulesProvider():createOllamaProvider({model,endpoint:modelEndpoint});
    const result=await analyse(request,{provider});
-   let umg={status:'NOT_RUN',reason:'No UMG endpoint configured. Findings are CaseBrief analysis proposals; UMG has not approved them.'};
+   if(reviewHost.invalidatedRuns.has(input.clientRunId))throw new AnalysisError('STALE_CLIENT_RUN');
+   const candidateFindings=result.findings.map(f=>({findingId:f.findingId,category:f.category,statement:f.statement,sourceIds:f.sourceRefs}));
+   const hostRequest={...request,candidateFindings};
+   const requestCheck=adapter.validateRequest(hostRequest);if(!requestCheck.valid)throw new AnalysisError('INVALID_HOST_REQUEST');
+   reviewHost.begin({request:hostRequest,analysisResult:result,documents:input.documents,clientRunId:input.clientRunId});
+   let umg={status:'NOT_CONFIGURED',acceptedCount:0,quarantinedCount:0,dispatchCount:0,reason:'No UMG endpoint configured. These are CaseBrief proposals only; UMG has not validated them.'},responseDigest=null,errorCode=null;
    if(umgEndpoint){
-    const candidateFindings=result.findings.map(f=>({findingId:f.findingId,category:f.category,statement:f.statement,sourceIds:f.sourceRefs}));
-    const wireRequest={...request,candidateFindings};
-    const response=await invokeLocal(wireRequest,{endpoint:umgEndpoint});
-    umg={status:response.status,runtime:response.runtime,acceptedCount:response.result.acceptedFindings.length,quarantinedCount:response.result.quarantinedFindings.length,errorCode:response.error?.code||null,reason:'The supplied UMG service validates a pinned synthetic configuration. Fresh findings may be quarantined; a compiler receipt does not establish factual correctness.'};
+    try{
+     const response=await invokeLocal(hostRequest,{endpoint:umgEndpoint});
+     const validation=adapter.validateResponse(response,hostRequest);
+     if(!validation.valid)throw new AnalysisError('INVALID_UMG_RESPONSE');
+     responseDigest=hash(response);
+     umg={status:response.status,acceptedCount:response.result.acceptedFindings.length,quarantinedCount:response.result.quarantinedFindings.length,dispatchCount:response.effects.dispatchCount,runtime:response.runtime,
+      quarantinedFindings:response.result.quarantinedFindings.map(f=>({findingId:f.findingId,reason:f.quarantineReason||'UMG policy quarantine'})),
+      reason:response.result.quarantinedFindings.length?'UMG completed the supported governance operation but quarantined one or more fresh findings. CaseBrief proposals remain separate and require human review; this is not UMG semantic validation.':'UMG response passed the revision-2 response validator. This is not attorney approval.'};
+     if(response.status!=='SUCCEEDED')errorCode='UMG_'+response.status;
+    }catch(e){errorCode=e instanceof AnalysisError?e.code:'UMG_TRANSPORT_OR_VALIDATION_FAILED';umg={status:'ERROR',acceptedCount:0,quarantinedCount:0,dispatchCount:0,errorCode,reason:'UMG did not return a validated promotable response. No UMG findings were accepted.'}}
    }
-   // No authoritative case mutation. Receipts are mutable memory snapshots until durable backend work lands.
-   const row={result,umg,events:[],version:0};records.set(result.invocationId,row);
-   send(200,{...row,documents:input.documents.map((doc,i)=>({sourceId:sources[i].sourceId,title:doc.title}))});
-  }catch(e){send(400,{error:e instanceof AnalysisError?e.code:'ANALYSIS_FAILED'})}finally{clearTimeout(timer);active--}
+   const completed=reviewHost.complete(result.invocationId,{umg,responseDigest,errorCode});
+   const row=reviewHost.get(result.invocationId);
+   return send(200,asWorkbenchRow(row));
+  }catch(e){return send(e instanceof AnalysisError?400:409,{error:e.code||e.message||'ANALYSIS_FAILED'})}finally{clearTimeout(timer);active--}
  });
- server.requestTimeout=15000;server.headersTimeout=10000;server.maxConnections=12;
+ server.requestTimeout=15000;server.headersTimeout=10000;server.maxConnections=12;server.reviewHost=reviewHost;server.on('close',()=>reviewHost.close());
  return server;
+}
+function asWorkbenchRow(record){
+ const result={...record.analysis,invocationId:record.id,findings:record.findings||[]};
+ return {result,umg:record.umg,events:record.events||[],version:record.revision,readOnly:record.readOnly===true,hostAudit:record.hostAudit||[],documents:record.documents||[],status:record.status,errorCode:record.errorCode};
 }
 if(require.main===module){
  const port=Number(process.env.CASEBRIEF_ANALYSIS_PORT||8780);
  if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Invalid local port');
  const server=createServer();server.listen(port,'127.0.0.1',()=>console.log(`CaseBrief fictional document workbench: http://127.0.0.1:${port}/analysis/`));
 }
-module.exports={createServer};
+module.exports={createServer,asWorkbenchRow};
