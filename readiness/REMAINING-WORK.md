@@ -17,7 +17,7 @@ The last items are not automatically completed by this engineering change. Do no
 
 ## October 30 integration progress
 
-The full October 30 response package was checksum-verified and its standalone qualification reproduced. The current branch adds a reproducible runner exercising the actual CaseBrief Node adapter with that package, including a persistent local synthetic review and audit flow. See `integration/HOST_INTEGRATION_FOUNDATION.md` for commands and limits. These changes are not a production backend or Chris's signoff.
+The October 30 base plus November 4 overlay are separately checksum-verified by the handoff evidence. The combined November 5 branch now joins PR #10's UMG host/store/intake foundation with PR #11/#12 analysis and passage verification. The workbench invokes the actual revision-2 adapter when configured, validates responses, persists local synthetic review decisions in SQLite, and rejects stale/invalid results. Exact-head CI and an actual replay against the November 4 package are still required; this is not a production backend or attorney signoff.
 
 Completed preparation: six draft fictional factual-control packets and reviewer worksheet; an explicit provider/backend decision register; and feature-level recovery triage of conflicting PR #2. Packet labels are not adjudicated and no pilot measurements are claimed. The fixed-sample intake slice is implemented separately in `ingestion-demo.js`; real file/court ingestion remains open.
 
@@ -41,3 +41,17 @@ Return an evidence table with item, status, artifact/hash, version/commit, limit
 - Actual willingness to pay and buyer procurement constraints.
 
 Until those exist, complete synthetic engineering and evaluation preparation; do not invent commitments or report measured outcomes.
+
+
+## November 5 CaseBrief-owned implementation status
+
+The integration branch adds a persistent local review ledger and an application bridge. It does not turn the local actor/session into production authentication. Historical review records survive a server restart, but the old authorization/source context is not restored; those receipts are read-only until a new comparison is run. The ledger is hash-chained and append-only within SQLite, but it is not externally signed or independently tamper-proof.
+
+Next engineering actions:
+1. Run the combined CI suite and fix every regression before merge.
+2. Start the exact November 4 UMG service and replay a fresh fictional candidate plus the pinned sample; retain both acceptance and quarantine evidence.
+3. Confirm invalid identity, unsupported status, changed source, timeout and late result cannot enter human review.
+4. Complete a security review of the SQLite store, local session token, request-size limits and data retention.
+5. Keep real-client data disabled until a separately authenticated, hosted backend and security qualification exist.
+
+The UMG release still quarantines fresh arbitrary candidates by design. CaseBrief's separate proposal workflow must preserve that quarantine as a distinct UMG result; no UI or report may describe the candidate as UMG-validated or attorney-approved.
