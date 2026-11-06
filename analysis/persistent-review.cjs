@@ -58,9 +58,11 @@ class PersistentAnalysisReview{
  }
  invalidateClientRun(clientRunId,sessionToken){
   if(typeof clientRunId!=='string'||!clientRunId)throw new Error('CLIENT_RUN_REQUIRED');
-  this.invalidatedRuns.add(clientRunId);const id=this.clientRuns.get(clientRunId);
+  const id=this.clientRuns.get(clientRunId),context=id?this.contexts.get(id):null;
+  if(context&&context.sessionToken!==sessionToken)throw new Error('SESSION_CONTEXT_MISMATCH');
+  this.invalidatedRuns.add(clientRunId);
   if(!id)return {invalidated:true,invocationId:null};
-  const context=this.contexts.get(id);if(context&&context.sessionToken!==sessionToken)throw new Error('SESSION_CONTEXT_MISMATCH');if(context)context.active=false;
+  if(context)context.active=false;
   const record=this.rawGet(id);if(record.status==='INVALIDATED'||record.status==='REJECTED')return {invalidated:true,invocationId:id};
   const scope={tenantId:record.tenantId,matterId:record.matterId,actorId:record.actorId};
   this.store.update(id,scope,current=>({record:{...current,status:'INVALIDATED',revision:current.revision+1,version:current.revision+1,findings:[],errorCode:'HOST_CONTEXT_CHANGED',updatedAt:new Date().toISOString()},event:'result.invalidated',data:{code:'HOST_CONTEXT_CHANGED',sourceSnapshotDigest:current.sourceSnapshotDigest}}));
