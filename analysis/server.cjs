@@ -79,7 +79,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
       quarantinedFindings:response.result.quarantinedFindings.map(f=>({findingId:f.findingId,reason:f.quarantineReason||'UMG policy quarantine'})),
       reason:response.result.quarantinedFindings.length?'UMG completed the supported governance operation but quarantined one or more fresh findings. CaseBrief proposals remain separate and require human review; this is not UMG semantic validation.':'UMG response passed the revision-2 response validator. This is not attorney approval.'};
      if(response.status!=='SUCCEEDED')errorCode='UMG_'+response.status;
-    }catch(e){errorCode=e instanceof AnalysisError?e.code:'UMG_TRANSPORT_OR_VALIDATION_FAILED';umg={status:'ERROR',acceptedCount:0,quarantinedCount:0,dispatchCount:0,errorCode,reason:'UMG did not return a validated promotable response. No UMG findings were accepted.'}}
+    }catch(e){errorCode=e instanceof AnalysisError?e.code:'UMG_TRANSPORT_OR_VALIDATION_FAILED';umg={status:'ERROR',acceptedCount:0,quarantinedCount:0,dispatchCount:0,errorCode,errorDetail:String(e.message||e).slice(0,240),reason:'UMG did not return a validated promotable response. No UMG findings were accepted.'}}
    }
    const completed=reviewHost.complete(result.invocationId,{umg,responseDigest,errorCode});
    const row=reviewHost.get(result.invocationId);
