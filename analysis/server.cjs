@@ -91,7 +91,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
 }
 function asWorkbenchRow(record){
  const result={...record.analysis,invocationId:record.id,findings:record.findings||[]};
- return {result,umg:record.umg,events:record.events||[],version:record.revision,readOnly:record.readOnly===true,hostAudit:record.hostAudit||[],documents:record.documents||[],status:record.status,errorCode:record.errorCode};
+ return {result,umg:record.umg,events:record.events||[],decisions:record.decisions||[],version:record.revision,readOnly:record.readOnly===true,hostAudit:record.hostAudit||[],sourceSnapshotDigest:record.sourceSnapshotDigest,documents:record.documents||[],status:record.status,errorCode:record.errorCode};
 }
 if(require.main===module){
  const port=Number(process.env.CASEBRIEF_ANALYSIS_PORT||8780);
