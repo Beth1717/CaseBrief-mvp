@@ -32,7 +32,7 @@ class PersistentAnalysisReview{
   const context=this.contexts.get(id),record=this.rawGet(id);
   if(!context)throw new Error('HOST_CONTEXT_UNAVAILABLE');
   const scope=context.scope;
-  return this.store.update(id,scope,current=>{
+  const updated=this.store.update(id,scope,current=>{
    let status='REJECTED',findings=[],event='result.rejected',code=errorCode;
    const expired=context.expiresAt&&Date.parse(context.expiresAt)<=Date.now();
    if(!context.active||this.invalidatedRuns.has(context.clientRunId)||expired){status='INVALIDATED';event='result.invalidated';code='HOST_CONTEXT_CHANGED'}
@@ -41,6 +41,8 @@ class PersistentAnalysisReview{
    const next={...current,status,revision:current.revision+1,version:current.revision+1,findings,umg:clone(umg||{status:'ERROR',dispatchCount:0}),responseDigest,errorCode:code,updatedAt:new Date().toISOString()};
    return {record:next,event,data:{code,responseDigest,sourceSnapshotDigest:current.sourceSnapshotDigest,proposalCount:findings.length,umgStatus:next.umg.status,dispatchCount:next.umg.dispatchCount||0}};
   });
+  if(updated.status==='PENDING_HUMAN_REVIEW')context.expiresAt=null;
+  return updated;
  }
  rawGet(id){
   const row=this.store.db.prepare('SELECT body FROM invocations WHERE id=?').get(id);
@@ -49,7 +51,7 @@ class PersistentAnalysisReview{
  get(id,sessionToken){
   const record=this.rawGet(id),context=this.contexts.get(id);
   if(record.tenantId!=='local-synthetic-workbench'||record.actorId!=='local-workbench-user')throw new Error('INVOCATION_NOT_AUTHORIZED');
-  const active=!!context?.active&&context.sessionToken===sessionToken&&context.contextDigest===record.contextDigest&&!(context.expiresAt&&Date.parse(context.expiresAt)<=Date.now())&&record.status==='PENDING_HUMAN_REVIEW';
+  const active=!!context?.active&&context.sessionToken===sessionToken&&context.contextDigest===record.contextDigest&&record.status==='PENDING_HUMAN_REVIEW';
   const events=this.store.events(id,{tenantId:record.tenantId,matterId:record.matterId,actorId:record.actorId});
   return {...record,events:clone(record.events||[]),version:record.revision,readOnly:!active,hostAudit:events,findings:record.status==='INVALIDATED'?[]:record.findings};
  }
@@ -70,7 +72,6 @@ class PersistentAnalysisReview{
  }
  review({invocationId,findingId,action,reason,assessment,version,sessionToken}){
   const context=this.contexts.get(invocationId);if(!context?.active)throw new Error('SOURCE_CONTEXT_UNAVAILABLE');if(context.sessionToken!==sessionToken)throw new Error('SESSION_CONTEXT_MISMATCH');
-  if(context.expiresAt&&Date.parse(context.expiresAt)<=Date.now())throw new Error('AUTHORIZATION_EXPIRED');
   const scope=context.scope,record=this.store.get(invocationId,scope);
   if(record.status!=='PENDING_HUMAN_REVIEW')throw new Error('RESULT_NOT_REVIEWABLE');
   if(!Number.isInteger(version)||version!==record.revision)throw new Error('REVIEW_CONFLICT');
