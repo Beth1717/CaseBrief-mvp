@@ -5,7 +5,7 @@
 - October 30 base archive SHA-256: `35c87ae0c92a9b48fe8d77d1d638620470f46c796885957f495284fad87a8476` — matched the supplied archive.
 - October 30 base `SHA256SUMS.txt`: 907 entries verified before applying the overlay.
 - November 4 delta archive SHA-256: `359a14ee5eeb60358330f752cacd87209ad00967cf03e2d9e04854fe074a78d5` — matched the supplied archive.
-- November 4 `DELTA_SHA256SUMS.txt`: all 12 overlay source files verified.
+- November 4 `DELTA_SHA256SUMS.txt`: all 40 delta-package entries verified, including the 12 overlay source files.
 - The merged 915-entry checksum list was checked after running the qualification commands. 911 entries matched. Four generated evidence outputs differed because the rerun regenerated dynamic runtime receipts/results: `evidence/live-matrix/RESULTS.json`, `evidence/live-matrix/cases/supported-contradiction.response.json`, `evidence/live-matrix/readiness.json`, and `working-release/framework-replay/WORKER_LIFETIME_TEST_RESULTS.json`. The overlay source files and base archive checksums matched. The generated-output differences are disclosed rather than represented as a clean merged-manifest pass.
 
 ## Environment
