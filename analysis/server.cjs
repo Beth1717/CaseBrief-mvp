@@ -1,6 +1,6 @@
 'use strict';
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
-const {randomBytes,timingSafeEqual}=require('node:crypto');
+const {randomBytes}=require('node:crypto');
 const adapter=require('../integration/umg-runtime-rev2.cjs');
 const {buildRequest,invokeLocal}=adapter;
 const {analyse,rulesProvider,hash,AnalysisError}=require('./engine.cjs');
