@@ -5,6 +5,25 @@ Run `npm ci --ignore-scripts`, then `npm run start:analysis`. Open
 synthetic CaseBrief demo at `/`; its local top-bar link opens this workspace. The
 public browser demo retains its `connect-src 'none'` policy. Nothing is deployed.
 
+## Isolated Replit development preview
+
+For a synthetic-only Replit development preview, set Replit's platform-provided
+`REPLIT_DEV_DOMAIN` and run `npm run start:preview`. The preview mode binds to
+`0.0.0.0` as required by the platform but accepts requests only when the Host
+header exactly matches that platform-provided domain and browser API requests
+carry the matching `https://` Origin. It refuses malformed domains and refuses
+to start when `NODE_ENV=production`. Do not set `CASEBRIEF_REPLIT_PREVIEW=1`
+outside the Replit development preview. The normal `npm run start:analysis`
+command remains loopback-only.
+
+The preview uses the same fictional-only API restrictions, per-session token,
+human-review gate, no-external-effects boundary and explicit UMG status as the
+local workbench. It is a development demonstration, not production hosting or
+an authorised location for confidential client material. Configure
+`CASEBRIEF_REVIEW_DB` to an ephemeral path for a disposable preview. Do not
+attach a production database, real documents, model credentials or a live UMG
+endpoint to a public preview.
+
 ## What works
 
 - Enter two to twelve fictional text extracts; documents are not a fixed replay.
