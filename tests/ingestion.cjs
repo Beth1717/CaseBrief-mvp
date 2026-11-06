@@ -1,0 +1,58 @@
+const assert=require('node:assert/strict'),boot=require('./helpers/application.cjs');
+const app=boot(),run=app.run;
+(async()=>{
+ assert.equal(await run("importIngestionFixture('not-a-sample')"),false);
+ const first=await run("importIngestionFixture('firm_manifest')");assert.equal(first.status,'quarantined');
+ assert.equal(run('ingestionState().sources.length'),1);assert.equal(run('ingestionState().assertions.length'),2);
+ const docId=run('ingestionState().sources[0].documentId');assert.equal(run(`data.documents.some(d=>d.id==='${docId}')`),false);
+ assert.equal(run('ingestionState().assertions.some(a=>a.active)'),false);
+ assert.equal((await run("importIngestionFixture('firm_manifest')")).status,'duplicate');assert.equal(run('ingestionState().sources.length'),1);assert.equal(run('ingestionState().assertions.length'),2);
+ assert.equal(await run(`decideIngestionSource('${first.id}','promote',' ')`),false);
+ assert.equal((await run(`decideIngestionSource('${first.id}','promote','Checked sample provenance')`)).status,'promoted');
+ assert.equal(run(`data.documents.find(d=>d.id==='${docId}').reviewed`),false);
+ assert.equal(run('ingestionState().assertions.every(a=>a.active)'),true);
+ run(`data.documents.find(d=>d.id==='${docId}').reviewed=true;data.issues.push({id:'ingest-test-finding',sources:['${docId}'],status:'reviewed',humanConfirmed:true,weight:1})`);
+ const oldPayload=run('ingestionState().sources[0].payload'),oldHash=run('ingestionState().sources[0].integrityHash');
+ const update=await run("importIngestionFixture('firm_update')");assert.equal(run(`data.documents.find(d=>d.id==='${docId}').excerpt`),oldPayload);
+ await run(`decideIngestionSource('${update.id}','promote','Reviewed a new sample version')`);
+ assert.equal(run('ingestionState().sources[0].payload'),oldPayload);assert.equal(run('ingestionState().sources[0].integrityHash'),oldHash);assert.equal(run('ingestionState().sources[0].validationStatus'),'superseded');
+ assert.equal(run(`data.documents.find(d=>d.id==='${docId}').sourceVersion`),2);assert.equal(run(`data.documents.find(d=>d.id==='${docId}').reviewed`),false);
+ assert.equal(run("data.issues.find(f=>f.id==='ingest-test-finding').humanConfirmed"),false);assert.equal(run("data.issues.find(f=>f.id==='ingest-test-finding').status"),'open');
+ assert.equal(run('ingestionState().assertions.filter(a=>a.active).every(a=>a.sourceVersion===2)'),true);
+ await run(`decideIngestionSource('${update.id}','revoke','Withdraw this synthetic source')`);
+ assert.equal(run(`data.documents.some(d=>d.id==='${docId}')`),false);assert.equal(run('ingestionState().assertions.some(a=>a.active)'),false);
+ assert.equal(await run(`decideIngestionSource('${first.id}','promote','Old version must stay superseded')`),false);
+ const note=await run("importIngestionFixture('counsel_note')");await run(`decideIngestionSource('${note.id}','promote','Privileged reason sentinel')`);
+ run(`beginIngestionDecision('${note.id}','revoke')`);assert.ok(app.get('detailRoot').innerHTML.includes('FICTIONAL COUNSEL NOTE'));
+ run("switchSecurityProfile('investigator')");assert.equal(app.get('detailRoot').innerHTML,'');assert.ok(!run('caseIngestion()').includes('FICTIONAL COUNSEL NOTE'));
+ assert.ok(!run('activityHistory()').includes('Privileged reason sentinel'));
+ assert.equal(await run("importIngestionFixture('counsel_note')"),false);assert.equal(run('data.documents.filter(canAccessDocument).some(d=>d.type===\'Attorney note\')'),false);
+ const notice=await run("importIngestionFixture('court_notice')");assert.equal(notice.status,'quarantined');assert.equal(await run(`decideIngestionSource('${notice.id}','promote','Investigator lacks review permission')`),false);
+ run("switchSecurityProfile('client')");assert.equal(await run("importIngestionFixture('firm_manifest')"),false);assert.ok(!run('caseIngestion()').includes(oldPayload));
+ run("switchSecurityProfile('attorney')");
+ // Recheck role after async hashing; a changed role must not import a source.
+ run('globalThis.realHash=ingestionHash;ingestionHash=()=>new Promise(resolve=>{globalThis.releaseHash=()=>resolve("not-used")})');
+ let pending=run("importIngestionFixture('court_notice')");run("switchSecurityProfile('client');releaseHash()");assert.equal(await pending,false);
+ run("switchSecurityProfile('attorney')");pending=run("importIngestionFixture('court_notice')");run("switchCase('matter-002');releaseHash()");assert.equal(await pending,false);assert.equal(run('ingestionState().sources.length'),0);
+ run("switchCase('matter-001');ingestionHash=realHash");
+ // An altered payload cannot be promoted using its old digest.
+ run(`ingestionState().sources.find(s=>s.id==='${notice.id}').payload+=' altered'`);
+ assert.equal(await run(`decideIngestionSource('${notice.id}','promote','Corrupt sample should fail')`),false);
+ // Storage failure rolls source/document/assertion/audit changes back together.
+ const before=run('JSON.stringify({ingestion:data.ingestion,documents:data.documents,issues:data.issues,events:workspace.events})');
+ run('globalThis.realSetItem=localStorage.setItem;localStorage.setItem=()=>{throw new Error("quota")}');
+ assert.equal(await run("importIngestionFixture('firm_update')"),false);
+ assert.equal(run('JSON.stringify({ingestion:data.ingestion,documents:data.documents,issues:data.issues,events:workspace.events})'),before);
+ run('localStorage.setItem=realSetItem');assert.ok(run('workspace.events.some(e=>e.action===\'ingestion.source_revoked\')'));
+ const separate=boot();const one=await separate.run("importIngestionFixture('firm_manifest')"),two=await separate.run("importIngestionFixture('firm_update')");await separate.run(`decideIngestionSource('${two.id}','promote','Newest version first')`);assert.equal(await separate.run(`decideIngestionSource('${one.id}','promote','Cannot silently downgrade')`),false);
+ const failing=boot();failing.run('ingestionState();globalThis.realSet=localStorage.setItem;localStorage.setItem=()=>{throw new Error("quota")}');
+ assert.equal(await failing.run("importIngestionFixture('firm_manifest')"),false);assert.equal(failing.run('ingestionState().sources.length'),0);
+ failing.run('localStorage.setItem=realSet');const row=await failing.run("importIngestionFixture('firm_manifest')");
+ const doc=row.id;failing.run('localStorage.setItem=()=>{throw new Error("quota")}');
+ assert.equal(await failing.run(`decideIngestionSource('${doc}','promote','Should roll back')`),false);assert.equal(failing.run('ingestionState().sources[0].validationStatus'),'quarantined');assert.equal(failing.run('data.documents.some(d=>d.ingestionSourceId)'),false);
+ failing.run('localStorage.setItem=realSet');await failing.run(`decideIngestionSource('${doc}','promote','Now saved')`);failing.run('localStorage.setItem=()=>{throw new Error("quota")}');
+ assert.equal(await failing.run(`decideIngestionSource('${doc}','revoke','Revoke should roll back')`),false);assert.equal(failing.run('ingestionState().sources[0].validationStatus'),'promoted');assert.equal(failing.run('data.documents.some(d=>d.ingestionSourceId)'),true);
+ const court=boot(),matterBefore=court.run('JSON.stringify(data.matter)');const oldNotice=await court.run("importIngestionFixture('court_notice')");await court.run(`decideIngestionSource('${oldNotice.id}','promote','Checked fictional notice')`);const newNotice=await court.run("importIngestionFixture('court_update')");await court.run(`decideIngestionSource('${newNotice.id}','promote','Checked fictional revision')`);assert.equal(court.run('ingestionState().sources[0].validationStatus'),'superseded');assert.equal(court.run('JSON.stringify(data.matter)'),matterBefore);
+ const family=boot();family.run('openInvestorPilot()');const privateRow=await family.run("importIngestionFixture('counsel_note')");await family.run(`decideIngestionSource('${privateRow.id}','promote','Internal sample only')`);const publicRow=await family.run("importIngestionFixture('firm_manifest')");await family.run(`decideIngestionSource('${publicRow.id}','promote','Legal team sample only')`);family.run("switchSecurityProfile('client')");assert.equal(family.run('data.documents.filter(canAccessDocument).some(d=>d.ingestionSourceId)'),false);assert.equal(family.run('pilotReviewReceipt()'),null);
+ console.log('PASS ingestion: fixed samples, quarantine exclusion, duplicate prevention, reasoned promotion, immutable original versions, replacement/revocation invalidation, privileged filtering, async role/matter rechecks, hash rejection and atomic browser-storage rollback.');
+})().catch(e=>{console.error(e);process.exitCode=1});
