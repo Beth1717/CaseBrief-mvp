@@ -26,7 +26,7 @@ test('local browser flow discovers fresh findings, rejects CSRF and records vers
  assert.equal((await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)})).status,409);
  const assessed=await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify({...review,action:'SUPPORT_ASSESSED',assessment:'SUPPORTED'})});assert.equal(assessed.status,200);review.version=(await assessed.clone().json()).version;
  const confirmed=await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)});assert.equal(confirmed.status,200);assert.equal((await confirmed.json()).version,3);
- assert.equal((await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)})).status,400);
+ assert.equal((await fetch(base+'/api/review',{method:'POST',headers,body:JSON.stringify(review)})).status,409);
  assert.equal((await fetch(base+'/.git/config')).status,404);
  assert.equal((await fetch(base+'/analysis/')).status,200);
  const nonSynthetic=JSON.stringify({syntheticOnly:false,engine:'rules',documents});assert.equal((await fetch(base+'/api/analyse',{method:'POST',headers,body:nonSynthetic})).status,400);
