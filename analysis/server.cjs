@@ -11,7 +11,8 @@ const demoFiles=new Set(['index.html',...fs.readdirSync(ROOT).filter(name=>/\.(j
 const allowed=new Map([['/analysis/', ['analysis/workbench.html','text/html']],['/analysis/workbench.js',['analysis/workbench.js','text/javascript']],['/analysis/workbench.css',['analysis/workbench.css','text/css']]]);
 function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=process.env.CASEBRIEF_OLLAMA_ENDPOINT,umgEndpoint=process.env.CASEBRIEF_UMG_ENDPOINT,reviewDbPath=process.env.CASEBRIEF_REVIEW_DB||path.join(ROOT,'readiness','results','casebrief-synthetic-review.sqlite')}={}){
  if(reviewDbPath!==':memory:')fs.mkdirSync(path.dirname(path.resolve(reviewDbPath)),{recursive:true});
- const sessionTokens=new Map(),reviewHost=new PersistentAnalysisReview({filename:reviewDbPath,syntheticOnly:true});let active=0;\n const issueSessionToken=()=>{const now=Date.now();for(const [key,expiry] of sessionTokens)if(expiry<=now)sessionTokens.delete(key);const value=randomBytes(32).toString('hex');sessionTokens.set(value,now+30*60*1000);while(sessionTokens.size>100)sessionTokens.delete(sessionTokens.keys().next().value);return value;};
+ const sessionTokens=new Map(),reviewHost=new PersistentAnalysisReview({filename:reviewDbPath,syntheticOnly:true});let active=0;
+ const issueSessionToken=()=>{const now=Date.now();for(const [key,expiry] of sessionTokens)if(expiry<=now)sessionTokens.delete(key);const value=randomBytes(32).toString('hex');sessionTokens.set(value,now+30*60*1000);while(sessionTokens.size>100)sessionTokens.delete(sessionTokens.keys().next().value);return value;};
  const server=http.createServer(async(req,res)=>{
   const origin=`http://127.0.0.1:${server.address().port}`;
   const send=(status,data)=>{if(res.destroyed)return;res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data))};
