@@ -26,7 +26,7 @@ const AUDIT_ACTION_LABELS={
  'ai.question_asked':'Question asked','ai.response_generated':'AI response generated','ai.chat_cleared':'AI chat cleared','draft.generated':'Draft generated',
  'draft.opened':'Draft opened','draft.edit_started':'Document editing started','draft.version_saved':'Document version saved','content.copied':'Content copied','content.copy_failed':'Copy failed','communication.compose_opened':'Message draft opened',
  'communication.content_prepared':'Message prepared','communication.demo_recorded':'Demo message recorded','analysis.started':'Analysis started',
- 'analysis.completed':'Analysis completed','security.profile_changed':'Active role changed','security.role_demo_changed':'Active role changed','security.access_denied':'Access denied',
+ 'analysis.completed':'Analysis completed','analysis.receipt_imported':'Analysis receipt imported to quarantine','security.profile_changed':'Active role changed','security.role_demo_changed':'Active role changed','security.access_denied':'Access denied',
  'security.privacy_enabled':'Privacy mode enabled','security.privacy_disabled':'Privacy mode disabled','security.privacy_mode_changed':'Privacy mode changed','security.session_locked':'Session locked',
  'security.session_unlocked':'Session unlocked','security.controls_initialized':'Security controls initialized','security.sensitive_action_prompted':'Sensitive action confirmation requested',
  'security.sensitive_action_confirmed':'Sensitive action confirmed','security.sensitive_action_cancelled':'Sensitive action cancelled','data.egress_attempt':'External copy/export attempted',
