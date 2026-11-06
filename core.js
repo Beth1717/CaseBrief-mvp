@@ -26,7 +26,8 @@ function initializeGuardedAdoption(){
 function freshWorkspace(){return {version:3,active:'matter-001',cases:{'matter-001':structuredClone(primarySeed),'matter-002':structuredClone(intakeSeed)},events:[],analysisInbox:[]}}
 let workspace;try{workspace=JSON.parse(localStorage.getItem(STORE));if(!workspace||workspace.version!==3)workspace=freshWorkspace()}catch{workspace=freshWorkspace();storageOK=false}
 // CaseBrief owns grants and fallback policy; analytical adapters only consume decisions.
-if(!Array.isArray(workspace.analysisInbox))workspace.analysisInbox=[];\nconst matterGrantConfiguration=Object.freeze({'demo-reviewer':Object.freeze(['matter-001']),'demo-system':Object.freeze(['matter-001'])});
+if(!Array.isArray(workspace.analysisInbox))workspace.analysisInbox=[];
+const matterGrantConfiguration=Object.freeze({'demo-reviewer':Object.freeze(['matter-001']),'demo-system':Object.freeze(['matter-001'])});
 function authorizeMatter(identity,id){return !!identity&&Object.hasOwn(matterGrantConfiguration,identity.id)&&matterGrantConfiguration[identity.id].includes(id)}
 if(guardedAdoption){
  const requested=workspace.active;
