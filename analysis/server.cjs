@@ -9,16 +9,19 @@ const {PersistentAnalysisReview}=require('./persistent-review.cjs');
 const ROOT=path.resolve(__dirname,'..');
 const demoFiles=new Set(['index.html',...fs.readdirSync(ROOT).filter(name=>/\.(js|css)$/.test(name)),'integration/host-controls.js']);
 const allowed=new Map([['/analysis/', ['analysis/workbench.html','text/html']],['/analysis/workbench.js',['analysis/workbench.js','text/javascript']],['/analysis/workbench.css',['analysis/workbench.css','text/css']]]);
-function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=process.env.CASEBRIEF_OLLAMA_ENDPOINT,umgEndpoint=process.env.CASEBRIEF_UMG_ENDPOINT,reviewDbPath=process.env.CASEBRIEF_REVIEW_DB||path.join(ROOT,'readiness','results','casebrief-synthetic-review.sqlite')}={}){
+function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=process.env.CASEBRIEF_OLLAMA_ENDPOINT,umgEndpoint=process.env.CASEBRIEF_UMG_ENDPOINT,reviewDbPath=process.env.CASEBRIEF_REVIEW_DB||path.join(ROOT,'readiness','results','casebrief-synthetic-review.sqlite'),previewHost=process.env.CASEBRIEF_REPLIT_PREVIEW==='1'?process.env.REPLIT_DEV_DOMAIN:null}={}){
+ if(previewHost!==null){if(typeof previewHost!=='string'||!/^[a-z0-9.-]+$/i.test(previewHost)||previewHost.startsWith('.')||previewHost.endsWith('.')||previewHost.includes('..')||process.env.NODE_ENV==='production')throw new Error('Invalid or unsafe Replit preview host configuration');previewHost=previewHost.toLowerCase();}
+ if(process.env.CASEBRIEF_REPLIT_PREVIEW==='1'&&!previewHost)throw new Error('REPLIT_DEV_DOMAIN is required for the isolated Replit preview mode');
  if(reviewDbPath!==':memory:')fs.mkdirSync(path.dirname(path.resolve(reviewDbPath)),{recursive:true});
  const sessionTokens=new Map(),reviewHost=new PersistentAnalysisReview({filename:reviewDbPath,syntheticOnly:true});let active=0;
  const issueSessionToken=()=>{const now=Date.now();for(const [key,expiry] of sessionTokens)if(expiry<=now)sessionTokens.delete(key);const value=randomBytes(32).toString('hex');sessionTokens.set(value,now+30*60*1000);while(sessionTokens.size>100)sessionTokens.delete(sessionTokens.keys().next().value);return value;};
  const server=http.createServer(async(req,res)=>{
-  const origin=`http://127.0.0.1:${server.address().port}`;
+  const origin=previewHost?`https://${previewHost}`:`http://127.0.0.1:${server.address().port}`;
   const send=(status,data)=>{if(res.destroyed)return;res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data))};
   const localSession=()=>{const provided=req.headers['x-casebrief-token'],expiry=sessionTokens.get(provided);if(!expiry||expiry<=Date.now()){if(expiry)sessionTokens.delete(provided);return false}if(typeof provided!=='string'||!/^[0-9a-f]{64}$/.test(provided)|| (req.headers.origin&&req.headers.origin!==origin))return false;sessionTokens.set(provided,Date.now()+30*60*1000);return true};
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
-  if(req.headers.host!==new URL(origin).host)return send(403,{error:'LOOPBACK_HOST_REQUIRED'});
+  const expectedHost=previewHost||new URL(origin).host;
+  if(req.headers.host!==expectedHost)return send(403,{error:previewHost?'PREVIEW_HOST_REQUIRED':'LOOPBACK_HOST_REQUIRED'});
   const route=req.url.split('?')[0];
   if(req.method==='GET'){
    const demoPath=route==='/'?'index.html':route.slice(1);
@@ -95,8 +98,9 @@ function asWorkbenchRow(record){
  return {result,umg:record.umg,events:record.events||[],decisions:record.decisions||[],version:record.revision,readOnly:record.readOnly===true,hostAudit:record.hostAudit||[],sourceSnapshotDigest:record.sourceSnapshotDigest,documents:record.documents||[],status:record.status,errorCode:record.errorCode};
 }
 if(require.main===module){
- const port=Number(process.env.CASEBRIEF_ANALYSIS_PORT||8780);
+ const port=Number(process.env.PORT||process.env.CASEBRIEF_ANALYSIS_PORT||8780);
  if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Invalid local port');
- const server=createServer();server.listen(port,'127.0.0.1',()=>console.log(`CaseBrief fictional document workbench: http://127.0.0.1:${port}/analysis/`));
+ const preview=process.env.CASEBRIEF_REPLIT_PREVIEW==='1';
+ const server=createServer();server.listen(port,preview?'0.0.0.0':'127.0.0.1',()=>console.log(preview?`CaseBrief synthetic Replit preview: https://${process.env.REPLIT_DEV_DOMAIN}/analysis/`:`CaseBrief fictional document workbench: http://127.0.0.1:${port}/analysis/`));
 }
 module.exports={createServer,asWorkbenchRow};
