@@ -35,7 +35,7 @@ public browser demo retains its `connect-src 'none'` policy. Nothing is deployed
   and server restarts. The database defaults to
   `readiness/results/casebrief-synthetic-review.sqlite`; override with
   `CASEBRIEF_REVIEW_DB`. SQLite files are git-ignored.
-- After a server restart, historical receipts remain inspectable but read-only:
+- After a browser-session refresh or server restart, historical receipts remain inspectable but read-only:
   the prior local session/source authorization context is intentionally not
   restored. A new comparison establishes a new review context.
 
