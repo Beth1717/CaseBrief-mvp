@@ -16,7 +16,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
  const server=http.createServer(async(req,res)=>{
   const origin=`http://127.0.0.1:${server.address().port}`;
   const send=(status,data)=>{if(res.destroyed)return;res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data))};
-  const localSession=()=>{const provided=req.headers['x-casebrief-token'],expiry=sessionTokens.get(provided);if(!expiry||expiry<=Date.now()){if(expiry)sessionTokens.delete(provided);return false}return (!req.headers.origin||req.headers.origin===origin)&&typeof provided==='string'&&/^[0-9a-f]{64}$/.test(provided)};
+  const localSession=()=>{const provided=req.headers['x-casebrief-token'],expiry=sessionTokens.get(provided);if(!expiry||expiry<=Date.now()){if(expiry)sessionTokens.delete(provided);return false}if(typeof provided!=='string'||!/^[0-9a-f]{64}$/.test(provided)|| (req.headers.origin&&req.headers.origin!==origin))return false;sessionTokens.set(provided,Date.now()+30*60*1000);return true};
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
   if(req.headers.host!==new URL(origin).host)return send(403,{error:'LOOPBACK_HOST_REQUIRED'});
   const route=req.url.split('?')[0];
