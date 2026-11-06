@@ -15,7 +15,7 @@ Status: synthetic static application. Technical inventory for review, not a secu
 | Analysis workbench → local host | `analysis/workbench.js` calls `analysis/server.cjs` on loopback with an expiring per-page session token | Fictional document extracts, analysis proposals, review actions and receipt metadata | Local session is not production identity; no organisation/tenant authentication or hosted isolation |
 | Node adapter → local runtime | `integration/umg-runtime-rev2.cjs`, invoked by the analysis host when `CASEBRIEF_UMG_ENDPOINT` is configured | Revision-2 synthetic request to 127.0.0.1; bounded response validated before host review | Separate local service; no hosted deployment, service identity or confidential-data approval |
 
-Current browser CSP blocks network connections. Loading static assets from a host is separate from allowing runtime AI/network requests. The application does not implement messaging delivery or autonomous court filing.
+The main CaseBrief browser CSP blocks network connections. The separate analysis workbench has its own loopback-only Node host and a `connect-src 'self'` policy so its UI can call that local host; it does not permit external AI/network destinations. Loading static assets from a host is separate from allowing runtime AI/network requests. The application does not implement messaging delivery or autonomous court filing.
 
 ## Local host persistence experiment added October 30
 
