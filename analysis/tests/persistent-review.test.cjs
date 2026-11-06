@@ -54,7 +54,10 @@ test('host review persists decisions, verifies UMG response, invalidates stale r
   assert.equal(app.server.reviewHost.store.verifyAuditChain(),true);
   const audit=await fetch(app.base+'/api/reviews/'+invocationId,{headers:{'x-casebrief-token':app.token}}).then(r=>r.json());
   assert.equal(audit.decisions.length,2);assert.equal(audit.hostAudit.length,4);
-  assert.ok(!JSON.stringify(audit.hostAudit).includes('Both fictional source passages were checked.'));\n  const refreshedSession=await fetch(app.base+'/api/health').then(r=>r.json());\n  const readOnlyFromNewPage=await fetch(app.base+'/api/reviews/'+invocationId,{headers:{'x-casebrief-token':refreshedSession.token}}).then(r=>r.json());\n  assert.equal(readOnlyFromNewPage.readOnly,true,'a fresh browser session cannot inherit the prior source-review authority');
+  assert.ok(!JSON.stringify(audit.hostAudit).includes('Both fictional source passages were checked.'));
+  const refreshedSession=await fetch(app.base+'/api/health').then(r=>r.json());
+  const readOnlyFromNewPage=await fetch(app.base+'/api/reviews/'+invocationId,{headers:{'x-casebrief-token':refreshedSession.token}}).then(r=>r.json());
+  assert.equal(readOnlyFromNewPage.readOnly,true,'a fresh browser session cannot inherit the prior source-review authority');
   const invalidated=await post(app.base,app.token,'/api/invalidate',{clientRunId:runId});
   assert.equal(invalidated.status,200);
   const hidden=await fetch(app.base+'/api/reviews/'+invocationId,{headers:{'x-casebrief-token':app.token}}).then(r=>r.json());
