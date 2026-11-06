@@ -58,6 +58,8 @@ test('host review persists decisions, verifies UMG response, invalidates stale r
   const refreshedSession=await fetch(app.base+'/api/health').then(r=>r.json());
   const readOnlyFromNewPage=await fetch(app.base+'/api/reviews/'+invocationId,{headers:{'x-casebrief-token':refreshedSession.token}}).then(r=>r.json());
   assert.equal(readOnlyFromNewPage.readOnly,true,'a fresh browser session cannot inherit the prior source-review authority');
+  const crossSessionReview=await post(app.base,refreshedSession.token,'/api/review',{invocationId,findingId,action:'DISMISSED',reason:'Cross-session action must be blocked',version:3});assert.equal(crossSessionReview.status,409);assert.equal(crossSessionReview.value.error,'SESSION_CONTEXT_MISMATCH');
+  const crossSessionInvalidate=await post(app.base,refreshedSession.token,'/api/invalidate',{clientRunId:runId});assert.equal(crossSessionInvalidate.status,409);
   const invalidated=await post(app.base,app.token,'/api/invalidate',{clientRunId:runId});
   assert.equal(invalidated.status,200);
   const hidden=await fetch(app.base+'/api/reviews/'+invocationId,{headers:{'x-casebrief-token':app.token}}).then(r=>r.json());
