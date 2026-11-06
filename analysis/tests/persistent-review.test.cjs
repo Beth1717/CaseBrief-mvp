@@ -44,7 +44,7 @@ test('host review persists decisions, verifies UMG response, invalidates stale r
   assert.equal(first.status,200);assert.equal(first.value.status,'PENDING_HUMAN_REVIEW',JSON.stringify(first.value.umg));
   assert.equal(first.value.result.findings.length,1);assert.equal(first.value.umg.status,'SUCCEEDED');assert.equal(first.value.umg.dispatchCount,0);
   const invocationId=first.value.result.invocationId,findingId=first.value.result.findings[0].findingId;
-  assert.equal(first.value.result.findings[0].reviewState,'HUMAN_REVIEW_REQUIRED');
+  assert.equal(first.value.result.findings[0].reviewState,'HUMAN_REVIEW_REQUIRED');assert.equal(app.server.reviewHost.contexts.get(first.value.result.invocationId).expiresAt,null,'UMG request expiry must not expire the separate human review session');
   const support=await post(app.base,app.token,'/api/review',{invocationId,findingId,action:'SUPPORT_ASSESSED',assessment:'SUPPORTED',reason:'Both fictional source passages were checked.',version:1});
   assert.equal(support.status,200);assert.equal(support.value.version,2);
   const confirm=await post(app.base,app.token,'/api/review',{invocationId,findingId,action:'CONFIRMED',reason:'The passages support this limited factual proposal.',version:2});
