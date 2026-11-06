@@ -35,3 +35,6 @@ Source references preserve indexed quotations and versions. File originals, OCR 
 5. The exact selected model and hosted end-to-end path need qualification. A successful local test double proves transport behavior only.
 
 The evidence-backed investor demo can be refined while these gates are open. None of the above authorises confidential-client use, court filing or external communication release.
+
+
+The main CaseBrief UMG screen now exposes a manual JSON receipt import. Imported receipts enter a global `UNTRUSTED_QUARANTINED` inbox after basic synthetic-scope and zero-dispatch checks. The importer copies proposal statements and source locator metadata only, omits source quote text/reviewer reasons, and does not attach proposals to a matter or alter CRI, timeline, evidence or witness records. This is a reviewable handoff surface, not a trusted promotion path; the inbox itself uses browser-local storage. Exact source mapping and attorney validation remain open.
