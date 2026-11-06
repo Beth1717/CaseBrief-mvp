@@ -16,16 +16,6 @@ HUMAN_REVIEW_REQUIRED proposal
 ↓
 Human passage assessment + disposition + audit</pre><p class="small muted">UMG does not perform general fresh-document semantic contradiction discovery. Fresh arbitrary candidates may be quarantined. A CaseBrief proposal is not UMG semantic validation, attorney approval or a legal conclusion.</p></div><div class="card c12"><h3>Not yet connected to this UMG path</h3><div class="row"><span class="pill">Main-app AI chat</span><span class="pill">authority research</span><span class="pill">document drafting</span><span class="pill">rights flags</span><span class="pill">main-case timeline</span><span class="pill">main-case evidence</span></div><p class="small muted">These surfaces remain separate or simulated. The local workbench does not automatically mutate the main case, CRI, witness records or filings.</p></div><div class="card c12"><h3>Untrusted local receipt inbox</h3><p class="muted">Import a downloaded synthetic workbench receipt for inspection. It remains quarantined, is not attached to this case, and cannot change CRI, timeline, evidence or witness records.</p><input type="file" accept=".json,application/json" onchange="importCaseBriefAnalysisReceipt(this)"><div id="analysisReceiptInbox"></div></div></div>`;
 }
-↓
-UMG compile / Sleeve
-↓
-Needs + ToolRequests
-↓
-CaseBrief document / research / model tools
-↓
-ToolResults + state update
-↓
-Trace + audit event</pre></div><div class="card c12"><h3>New surfaces that must be wired through the integration</h3><div class="row"><span class="pill">AI chat</span><span class="pill">authority research</span><span class="pill">document drafting</span><span class="pill">rights flags</span><span class="pill">source citations</span><span class="pill">audit events</span></div></div></div>`}
 function runConsistency(){if(!applicationAllowed())return blockApplication();const hits=data.issues.filter(x=>['contradiction','missing_evidence','timeline_gap','unsupported_assertion'].includes(x.category));record('analysis.started','record-consistency',{simulated:true});document.getElementById('runner').innerHTML=`<div class="list" style="margin-top:10px">${hits.map(x=>`<div class="item"><b>${esc(x.category)}</b><div>${esc(x.statement)}</div><div class="meta">${esc(x.sources.join(', '))}</div></div>`).join('')}</div>`;record('analysis.completed','record-consistency',{findings:hits.map(x=>x.id),simulated:true},'success',systemActor)}
 
 const AUDIT_ACTION_LABELS={
