@@ -11,11 +11,11 @@ const demoFiles=new Set(['index.html',...fs.readdirSync(ROOT).filter(name=>/\.(j
 const allowed=new Map([['/analysis/', ['analysis/workbench.html','text/html']],['/analysis/workbench.js',['analysis/workbench.js','text/javascript']],['/analysis/workbench.css',['analysis/workbench.css','text/css']]]);
 function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=process.env.CASEBRIEF_OLLAMA_ENDPOINT,umgEndpoint=process.env.CASEBRIEF_UMG_ENDPOINT,reviewDbPath=process.env.CASEBRIEF_REVIEW_DB||path.join(ROOT,'readiness','results','casebrief-synthetic-review.sqlite')}={}){
  if(reviewDbPath!==':memory:')fs.mkdirSync(path.dirname(path.resolve(reviewDbPath)),{recursive:true});
- const token=randomBytes(32).toString('hex'),reviewHost=new PersistentAnalysisReview({filename:reviewDbPath,syntheticOnly:true});let active=0;
+ const sessionTokens=new Map(),reviewHost=new PersistentAnalysisReview({filename:reviewDbPath,syntheticOnly:true});let active=0;\n const issueSessionToken=()=>{const now=Date.now();for(const [key,expiry] of sessionTokens)if(expiry<=now)sessionTokens.delete(key);const value=randomBytes(32).toString('hex');sessionTokens.set(value,now+30*60*1000);while(sessionTokens.size>100)sessionTokens.delete(sessionTokens.keys().next().value);return value;};
  const server=http.createServer(async(req,res)=>{
   const origin=`http://127.0.0.1:${server.address().port}`;
   const send=(status,data)=>{if(res.destroyed)return;res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data))};
-  const localSession=()=>{const provided=req.headers['x-casebrief-token'];return (!req.headers.origin||req.headers.origin===origin)&&typeof provided==='string'&&/^[0-9a-f]{64}$/.test(provided)&&timingSafeEqual(Buffer.from(provided),Buffer.from(token))};
+  const localSession=()=>{const provided=req.headers['x-casebrief-token'],expiry=sessionTokens.get(provided);if(!expiry||expiry<=Date.now()){if(expiry)sessionTokens.delete(provided);return false}return (!req.headers.origin||req.headers.origin===origin)&&typeof provided==='string'&&/^[0-9a-f]{64}$/.test(provided)};
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
   if(req.headers.host!==new URL(origin).host)return send(403,{error:'LOOPBACK_HOST_REQUIRED'});
   const route=req.url.split('?')[0];
@@ -30,13 +30,13 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
   if(req.method==='GET'&&allowed.has(route)){
    const [name,mime]=allowed.get(route);res.writeHead(200,{'content-type':mime,'cache-control':'no-store'});return res.end(fs.readFileSync(path.join(ROOT,name)));
   }
-  if(req.method==='GET'&&route==='/api/health')return send(200,{syntheticOnly:true,token,modelConfigured:!!model,model:model||null,umgConfigured:!!umgEndpoint,storedInvocations:reviewHost.list().length,persistence:'LOCAL_SQLITE_SYNTHETIC_ONLY',productionAuthentication:false});
+  if(req.method==='GET'&&route==='/api/health')return send(200,{syntheticOnly:true,token:issueSessionToken(),modelConfigured:!!model,model:model||null,umgConfigured:!!umgEndpoint,storedInvocations:reviewHost.list().length,persistence:'LOCAL_SQLITE_SYNTHETIC_ONLY',productionAuthentication:false});
   if(req.method==='GET'&&route==='/api/reviews'){
-   if(!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});return send(200,{reviews:reviewHost.list()});
+   if(!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});return send(200,{reviews:reviewHost.list(req.headers['x-casebrief-token'])});
   }
   if(req.method==='GET'&&route.startsWith('/api/reviews/')){
    if(!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});
-   try{return send(200,asWorkbenchRow(reviewHost.get(decodeURIComponent(route.slice('/api/reviews/'.length)))))}catch(e){return send(404,{error:e.message||'INVOCATION_NOT_FOUND'})}
+   try{return send(200,asWorkbenchRow(reviewHost.get(decodeURIComponent(route.slice('/api/reviews/'.length)),req.headers['x-casebrief-token'])))}catch(e){return send(404,{error:e.message||'INVOCATION_NOT_FOUND'})}
   }
   if(req.method!=='POST'||!['/api/analyse','/api/review','/api/invalidate'].includes(route))return send(404,{error:'NOT_FOUND'});
   if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'||!localSession())return send(403,{error:'LOCAL_SESSION_REQUIRED'});
@@ -49,9 +49,9 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
     req.on('end',()=>{clearTimeout(timer);try{resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')))}catch{reject(new AnalysisError('INVALID_JSON'))}});
     req.on('error',()=>reject(new AnalysisError('REQUEST_INTERRUPTED')));
    });
-   if(route==='/api/invalidate')return send(200,reviewHost.invalidateClientRun(input.clientRunId));
+   if(route==='/api/invalidate')return send(200,reviewHost.invalidateClientRun(input.clientRunId,req.headers['x-casebrief-token']));
    if(route==='/api/review'){
-    const updated=reviewHost.review(input);const row=reviewHost.get(input.invocationId);
+    const updated=reviewHost.review({...input,sessionToken:req.headers['x-casebrief-token']});const row=reviewHost.get(input.invocationId,req.headers['x-casebrief-token']);
     return send(200,{version:row.version,events:row.events,findings:row.findings,hostAudit:row.hostAudit});
    }
    if(input.syntheticOnly!==true||!['rules','ollama'].includes(input.engine)||!Array.isArray(input.documents)||input.documents.length<2||input.documents.length>12||typeof input.clientRunId!=='string'||!input.clientRunId)throw new AnalysisError('FICTIONAL_DOCUMENTS_REQUIRED');
@@ -67,7 +67,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
    const candidateFindings=result.findings.map(f=>({findingId:f.findingId,category:f.category,statement:f.statement,sourceIds:f.sourceRefs}));
    const hostRequest={...request,candidateFindings};
    const requestCheck=adapter.validateRequest(hostRequest);if(!requestCheck.valid)throw new AnalysisError('INVALID_HOST_REQUEST');
-   reviewHost.begin({request:hostRequest,analysisResult:result,documents:input.documents,clientRunId:input.clientRunId});
+   reviewHost.begin({request:hostRequest,analysisResult:result,documents:input.documents,clientRunId:input.clientRunId,sessionToken:req.headers['x-casebrief-token']});
    let umg={status:'NOT_CONFIGURED',acceptedCount:0,quarantinedCount:0,dispatchCount:0,reason:'No UMG endpoint configured. These are CaseBrief proposals only; UMG has not validated them.'},responseDigest=null,errorCode=null;
    if(umgEndpoint){
     try{
@@ -82,7 +82,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
     }catch(e){errorCode=e instanceof AnalysisError?e.code:'UMG_TRANSPORT_OR_VALIDATION_FAILED';umg={status:'ERROR',acceptedCount:0,quarantinedCount:0,dispatchCount:0,errorCode,errorDetail:String(e.message||e).slice(0,240),reason:'UMG did not return a validated promotable response. No UMG findings were accepted.'}}
    }
    const completed=reviewHost.complete(result.invocationId,{umg,responseDigest,errorCode});
-   const row=reviewHost.get(result.invocationId);
+   const row=reviewHost.get(result.invocationId,req.headers['x-casebrief-token']);
    return send(200,asWorkbenchRow(row));
   }catch(e){return send(e instanceof AnalysisError?400:409,{error:e.code||e.message||'ANALYSIS_FAILED'})}finally{clearTimeout(timer);active--}
  });
