@@ -74,7 +74,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
      const response=await invokeLocal(hostRequest,{endpoint:umgEndpoint});
      const validation=adapter.validateResponse(response,hostRequest);
      if(!validation.valid)throw new AnalysisError('INVALID_UMG_RESPONSE');
-     responseDigest=hash(response);
+     responseDigest=hash(JSON.stringify(response));
      umg={status:response.status,acceptedCount:response.result.acceptedFindings.length,quarantinedCount:response.result.quarantinedFindings.length,dispatchCount:response.effects.dispatchCount,runtime:response.runtime,
       quarantinedFindings:response.result.quarantinedFindings.map(f=>({findingId:f.findingId,reason:f.quarantineReason||'UMG policy quarantine'})),
       reason:response.result.quarantinedFindings.length?'UMG completed the supported governance operation but quarantined one or more fresh findings. CaseBrief proposals remain separate and require human review; this is not UMG semantic validation.':'UMG response passed the revision-2 response validator. This is not attorney approval.'};
