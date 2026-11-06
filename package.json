@@ -17,7 +17,8 @@
     "test:analysis:browser": "node analysis/tests/browser.cjs",
     "test:adapter-live-umg": "node analysis/tests/live-umg.cjs",
     "evaluate:analysis": "node scripts/evaluate-analysis.cjs",
-    "benchmark:documents": "node scripts/benchmark-documents.cjs"
+    "benchmark:documents": "node scripts/benchmark-documents.cjs",
+    "start:preview": "CASEBRIEF_REPLIT_PREVIEW=1 node analysis/server.cjs"
   },
   "dependencies": {
     "ajv": "8.20.0"
