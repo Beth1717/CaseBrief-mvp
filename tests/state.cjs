@@ -16,7 +16,7 @@ assert.equal(run('score()'),26);
 assert.ok(run('dashboard()').includes('measures operational readiness'));
 assert.ok(!run('criRing(score())').includes('Factors reducing CRI'));
 assert.ok(run('criRing(score())').includes('aria-describedby="cri-explanation"'));
-assert.ok(run('dashboard()').includes('Ask AI'));
+assert.ok(run('dashboard()').includes('Ask AI'));assert.ok(run('dashboard()').includes('Untrusted analysis receipts'));
 assert.ok(run('dashboard()').includes('Law & authority'));
 assert.ok(run('dashboard()').includes('Where this case is now'));
 assert.ok(run('authorities()').includes('Brady v. Maryland'));
