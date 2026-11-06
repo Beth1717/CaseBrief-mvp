@@ -23,6 +23,8 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npx --no-install playwright install --with-deps chromium
+      - name: Syntax-check opt-in live UMG integration test
+        run: node --check analysis/tests/live-umg.cjs
       - name: Run new document analysis tests
         run: npm run test:analysis
       - name: Record synthetic evaluation and document benchmark
