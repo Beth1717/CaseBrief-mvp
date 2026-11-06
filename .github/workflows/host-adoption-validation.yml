@@ -46,6 +46,7 @@ jobs:
           for suite in \
             analysis/tests/browser.cjs \
             tests/state.cjs \
+            tests/analysis-receipt-import.cjs \
             tests/ingestion.cjs \
             tests/browser-ingestion.cjs \
             tests/document-library.cjs \
