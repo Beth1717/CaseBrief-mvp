@@ -14,8 +14,8 @@ class PersistentAnalysisReview{
   const sources=request.sources.map(s=>({sourceId:s.sourceId,version:'sha256:'+hash(s.extract),digest:hash({sourceId:s.sourceId,matterId:s.matterId,locator:s.locator,extract:s.extract})}));
   return {sources,digest:hash({tenantId:request.hostContext.tenantId,matterId:request.hostContext.matterId,actor:request.hostContext.actor,authorization:request.hostContext.authorization,sources})};
  }
- begin({request,analysisResult,documents,clientRunId}){
-  if(request.syntheticOnly!==true||!clientRunId)throw new Error('SYNTHETIC_RUN_REQUIRED');
+ begin({request,analysisResult,documents,clientRunId,sessionToken}){
+  if(request.syntheticOnly!==true||!clientRunId||typeof sessionToken!=='string'||!/^[0-9a-f]{64}$/.test(sessionToken))throw new Error('SYNTHETIC_RUN_REQUIRED');
   const scope=this.scope(request),snapshot=this.snapshot(request),id=analysisResult.invocationId;
   if(this.invalidatedRuns.has(clientRunId))throw new Error('STALE_CLIENT_RUN');
   const record={id,tenantId:scope.tenantId,matterId:scope.matterId,actorId:scope.actorId,syntheticOnly:true,status:'RUNNING',revision:0,version:0,
@@ -24,7 +24,7 @@ class PersistentAnalysisReview{
    documents:clone(documents.map((d,i)=>({sourceId:request.sources[i].sourceId,title:d.title}))),
    umg:{status:'PENDING',acceptedCount:0,quarantinedCount:0,dispatchCount:0,reason:'UMG result not yet received.'},createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),errorCode:null};
   this.store.create(record);
-  this.contexts.set(id,{scope,contextDigest:snapshot.digest,clientRunId,active:true,expiresAt:request.hostContext.authorization.expiresAt});
+  this.contexts.set(id,{scope,contextDigest:snapshot.digest,clientRunId,sessionToken,active:true,expiresAt:request.hostContext.authorization.expiresAt});
   this.clientRuns.set(clientRunId,id);
   return clone(record);
  }
@@ -46,28 +46,28 @@ class PersistentAnalysisReview{
   const row=this.store.db.prepare('SELECT body FROM invocations WHERE id=?').get(id);
   if(!row)throw new Error('INVOCATION_NOT_FOUND');return JSON.parse(row.body);
  }
- get(id){
+ get(id,sessionToken){
   const record=this.rawGet(id),context=this.contexts.get(id);
   if(record.tenantId!=='local-synthetic-workbench'||record.actorId!=='local-workbench-user')throw new Error('INVOCATION_NOT_AUTHORIZED');
-  const active=!!context?.active&&context.contextDigest===record.contextDigest&&!(context.expiresAt&&Date.parse(context.expiresAt)<=Date.now())&&record.status==='PENDING_HUMAN_REVIEW';
+  const active=!!context?.active&&context.sessionToken===sessionToken&&context.contextDigest===record.contextDigest&&!(context.expiresAt&&Date.parse(context.expiresAt)<=Date.now())&&record.status==='PENDING_HUMAN_REVIEW';
   const events=this.store.events(id,{tenantId:record.tenantId,matterId:record.matterId,actorId:record.actorId});
   return {...record,events:clone(record.events||[]),version:record.revision,readOnly:!active,hostAudit:events,findings:record.status==='INVALIDATED'?[]:record.findings};
  }
- list(){
-  return this.store.db.prepare('SELECT body FROM invocations WHERE tenant=? AND actor=? ORDER BY rowid DESC LIMIT 20').all('local-synthetic-workbench','local-workbench-user').map(row=>{const r=JSON.parse(row.body);return {invocationId:r.id,matterId:r.matterId,status:r.status,proposalCount:r.findings?.length||0,createdAt:r.createdAt,updatedAt:r.updatedAt,readOnly:!this.contexts.get(r.id)?.active}});
+ list(sessionToken){
+  return this.store.db.prepare('SELECT body FROM invocations WHERE tenant=? AND actor=? ORDER BY rowid DESC LIMIT 20').all('local-synthetic-workbench','local-workbench-user').map(row=>{const r=JSON.parse(row.body);return {invocationId:r.id,matterId:r.matterId,status:r.status,proposalCount:r.findings?.length||0,createdAt:r.createdAt,updatedAt:r.updatedAt,readOnly:!this.contexts.get(r.id)?.active||this.contexts.get(r.id)?.sessionToken!==sessionToken}});
  }
- invalidateClientRun(clientRunId){
+ invalidateClientRun(clientRunId,sessionToken){
   if(typeof clientRunId!=='string'||!clientRunId)throw new Error('CLIENT_RUN_REQUIRED');
   this.invalidatedRuns.add(clientRunId);const id=this.clientRuns.get(clientRunId);
   if(!id)return {invalidated:true,invocationId:null};
-  const context=this.contexts.get(id);if(context)context.active=false;
+  const context=this.contexts.get(id);if(context&&context.sessionToken!==sessionToken)throw new Error('SESSION_CONTEXT_MISMATCH');if(context)context.active=false;
   const record=this.rawGet(id);if(record.status==='INVALIDATED'||record.status==='REJECTED')return {invalidated:true,invocationId:id};
   const scope={tenantId:record.tenantId,matterId:record.matterId,actorId:record.actorId};
   this.store.update(id,scope,current=>({record:{...current,status:'INVALIDATED',revision:current.revision+1,version:current.revision+1,findings:[],errorCode:'HOST_CONTEXT_CHANGED',updatedAt:new Date().toISOString()},event:'result.invalidated',data:{code:'HOST_CONTEXT_CHANGED',sourceSnapshotDigest:current.sourceSnapshotDigest}}));
   return {invalidated:true,invocationId:id};
  }
- review({invocationId,findingId,action,reason,assessment,version}){
-  const context=this.contexts.get(invocationId);if(!context?.active)throw new Error('SOURCE_CONTEXT_UNAVAILABLE');
+ review({invocationId,findingId,action,reason,assessment,version,sessionToken}){
+  const context=this.contexts.get(invocationId);if(!context?.active)throw new Error('SOURCE_CONTEXT_UNAVAILABLE');if(context.sessionToken!==sessionToken)throw new Error('SESSION_CONTEXT_MISMATCH');
   if(context.expiresAt&&Date.parse(context.expiresAt)<=Date.now())throw new Error('AUTHORIZATION_EXPIRED');
   const scope=context.scope,record=this.store.get(invocationId,scope);
   if(record.status!=='PENDING_HUMAN_REVIEW')throw new Error('RESULT_NOT_REVIEWABLE');
