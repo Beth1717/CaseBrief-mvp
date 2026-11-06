@@ -1,4 +1,8 @@
 // Untrusted handoff only: imported local analysis receipts never become case facts.
+function analysisInboxSummaryCard(){
+ const count=Array.isArray(workspace.analysisInbox)?workspace.analysisInbox.length:0;
+ return '<div class="card c12"><div class="kicker">Global review handoff</div><h3>Untrusted analysis receipts</h3><div class="row" style="justify-content:space-between"><div><div class="metric">'+count+'</div><p class="muted">receipt(s) quarantined outside the active case record. No CRI or case facts are changed.</p></div><button class="btn" onclick="showView(\'umg\')">Open receipt inbox</button></div></div>';
+}
 function analysisReceiptImportAllowed(){
  return !sessionLocked&&applicationAllowed()&&requirePermission('review_decisions','analysis-receipt:import')===true;
 }
