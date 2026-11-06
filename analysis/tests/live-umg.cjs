@@ -35,8 +35,8 @@ async function main(){
   assert.equal(server.reviewHost.store.verifyAuditChain(),true);
   console.log(JSON.stringify({status:'PASS',umgStatus:result.umg.status,umgAccepted:result.umg.acceptedCount,umgQuarantined:result.umg.quarantinedCount,casebriefProposals:result.result.findings.length,reviewState:result.result.findings[0]?.reviewState,dispatchCount:result.umg.dispatchCount,auditChain:'VALID'},null,2));
  }finally{
-  await new Promise(resolve=>server.close(()=>resolve()));
   server.closeAllConnections?.();
+  await new Promise(resolve=>server.close(()=>resolve()));
  }
 }
 main().catch(error=>{console.error(error);process.exitCode=1});
