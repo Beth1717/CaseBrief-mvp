@@ -14,7 +14,7 @@ async function withServer(server,fn){
 function request(port,path,{method='GET',headers={},body}={}){
  return new Promise((resolve,reject)=>{
   const req=http.request({hostname:'127.0.0.1',port,path,method,headers},res=>{
-   let data='';res.setEncoding('utf8');res.on('data',chunk=>data+=chunk);res.on('end',()=>resolve({status:res.statusCode,json:()=>JSON.parse(data)}));
+   let data='';res.setEncoding('utf8');res.on('data',chunk=>data+=chunk);res.on('end',()=>resolve({status:res.statusCode,text:data,json:()=>JSON.parse(data)}));
   });
   req.on('error',reject);if(body)req.write(body);req.end();
  });
@@ -25,7 +25,7 @@ test('Replit preview mode binds requests to the exact configured HTTPS host and 
  const server=createServer({previewHost,reviewDbPath:':memory:'});
  await withServer(server,async port=>{
   const health=await request(port,'/api/health',{headers:{host:previewHost}});
-  assert.equal(health.status,200);
+  assert.equal(health.status,200);const main=await request(port,'/',{headers:{host:previewHost}});assert.equal(main.status,200);assert.match(main.text,/data-analysis-host="true"/);
   const session=health.json();
   assert.equal(session.syntheticOnly,true);
   assert.equal(session.umgConfigured,false);

@@ -28,7 +28,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
    if(demoFiles.has(demoPath)){
     res.setHeader('Content-Security-Policy',"default-src 'self' blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
     const mime=demoPath.endsWith('.html')?'text/html':demoPath.endsWith('.css')?'text/css':'text/javascript';
-    res.writeHead(200,{'content-type':mime,'cache-control':'no-store'});return res.end(fs.readFileSync(path.join(ROOT,demoPath)));
+    res.writeHead(200,{'content-type':mime,'cache-control':'no-store'});return res.end(demoPath==='index.html'?fs.readFileSync(path.join(ROOT,demoPath),'utf8').replace('<html lang="en">','<html lang="en" data-analysis-host="true">'):fs.readFileSync(path.join(ROOT,demoPath)));
    }
   }
   if(req.method==='GET'&&allowed.has(route)){
@@ -56,7 +56,7 @@ function createServer({model=process.env.CASEBRIEF_OLLAMA_MODEL,modelEndpoint=pr
    if(route==='/api/invalidate')return send(200,reviewHost.invalidateClientRun(input.clientRunId,req.headers['x-casebrief-token']));
    if(route==='/api/review'){
     const updated=reviewHost.review({...input,sessionToken:req.headers['x-casebrief-token']});const row=reviewHost.get(input.invocationId,req.headers['x-casebrief-token']);
-    return send(200,{version:row.version,events:row.events,findings:row.findings,hostAudit:row.hostAudit});
+    return send(200,{version:row.version,events:row.events,findings:row.findings,decisions:row.decisions,hostAudit:row.hostAudit});
    }
    if(input.syntheticOnly!==true||!['rules','ollama'].includes(input.engine)||!Array.isArray(input.documents)||input.documents.length<2||input.documents.length>12||typeof input.clientRunId!=='string'||!input.clientRunId)throw new AnalysisError('FICTIONAL_DOCUMENTS_REQUIRED');
    const matterId='fictional-'+require('node:crypto').randomUUID(),now=Date.now();

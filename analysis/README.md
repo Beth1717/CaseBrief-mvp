@@ -68,7 +68,17 @@ CASEBRIEF_UMG_ENDPOINT='http://127.0.0.1:8767/v0.1/record-consistency' npm run s
 ```
 
 Only the exact `http://127.0.0.1/v0.1/record-consistency` route is accepted by
-the adapter. The CaseBrief host request uses revision 2 unchanged.\n\nTo run the opt-in end-to-end CaseBrief adapter → actual UMG → CaseBrief host check while the November 4 service is running, open a second terminal in this repository and run:\n\n```bash\nCASEBRIEF_UMG_ENDPOINT='http://127.0.0.1:8767/v0.1/record-consistency' npm run test:adapter-live-umg\n```\n\nThis test sends two fictional documents with a fresh candidate. It expects the real UMG service to return SUCCEEDED while quarantining the unreviewed finding, CaseBrief to retain its separate proposal as HUMAN_REVIEW_REQUIRED, the host audit chain to verify, and dispatch to remain zero. This is an opt-in local test and is not part of ordinary GitHub Actions because the vendor UMG package is not copied into this repository. Record the output before treating the combined live adapter replay as closed.\n\nThe separate
+the adapter. The CaseBrief host request uses revision 2 unchanged.
+
+To run the opt-in end-to-end CaseBrief adapter → actual UMG → CaseBrief host check while the November 4 service is running, open a second terminal in this repository and run:
+
+```bash
+CASEBRIEF_UMG_ENDPOINT='http://127.0.0.1:8767/v0.1/record-consistency' npm run test:adapter-live-umg
+```
+
+This test sends two fictional documents with a fresh candidate. It expects the real UMG service to return SUCCEEDED while quarantining the unreviewed finding, CaseBrief to retain its separate proposal as HUMAN_REVIEW_REQUIRED, the host audit chain to verify, and dispatch to remain zero. This is an opt-in local test and is not part of ordinary GitHub Actions because the vendor UMG package is not copied into this repository. Record the output before treating the combined live adapter replay as closed.
+
+The separate
 `casebrief.analysis.result.v1` structure is CaseBrief-owned and does not modify
 the UMG wire contract.
 
