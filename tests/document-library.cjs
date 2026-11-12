@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+const boot=require('./helpers/application.cjs');const {run,get}=boot();
+run("data.documents=Array.from({length:1000},(_,i)=>({id:'scale-'+i,title:'Fictional record '+i,type:'Synthetic',date:'2026-07-10',excerpt:'Synthetic load record '+i,reviewed:false}))");
+let page=run('documentPage()');assert.equal(page.total,1000);assert.equal(page.rows.length,50);assert.equal(page.pages,20);
+run('changeDocumentPage(1)');assert.equal(run('documentPage().start'),50);
+run("updateDocumentSearch('record 999')");assert.equal(run('documentPage().total'),1);assert.equal(run('documentPage().rows[0].id'),'scale-999');
+run("updateDocumentSearch('')");assert.equal(run('documentPage().start'),0);
+run("data.documents.push({id:'secret',type:'Attorney note',title:'PRIVATE-CANARY',excerpt:'PRIVATE-CANARY'})");
+run("activeSecurityProfile='investigator'");assert.equal(run('documentPage().total'),1000);assert.doesNotMatch(run('documents()'),/PRIVATE-CANARY/);
+run("updateDocumentSearch('PRIVATE-CANARY')");assert.equal(run('documentPage().total'),0);
+run("sessionLocked=true");assert.equal(run('changeDocumentPage(1)'),false);assert.equal(run("updateDocumentSearch('x')"),false);assert.equal(run('openDocumentPageRecord(0)'),false);
+run("sessionLocked=false;activeSecurityProfile='attorney'");assert.equal(run('documentPage().page'),0);assert.equal(run('documentPage().total'),1001);
+assert.equal(run('openDocumentPageRecord(55)'),false);
+console.log('PASS bounded document library: pagination, search, role reset, authorization before search, direct action and session denial.');

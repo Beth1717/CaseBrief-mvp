@@ -1,24 +1,32 @@
-function umg(){return `<div class="kicker">UMG integration boundary</div><h2>UMG Runtime / Analysis Trace</h2><p class="callout"><b>Current MVP state:</b> the workflow and audit surfaces are present, but the assistant on this page is simulated. A live model/document/research path should run through the agreed CaseBrief ↔ UMG contract rather than pretending the connector is already live.</p><div class="grid"><div class="card c6"><h3>Record Consistency Review</h3><p class="muted">Run the deterministic fixture to surface seeded contradictions and record gaps.</p><button class="btn primary" onclick="runConsistency()">Run sandbox review</button><div id="runner"></div></div><div class="card c6"><h3>Expected live tool path</h3><pre>CaseBrief matter state
+function umg(){
+ const localWorkbench=document.documentElement?.dataset?.analysisHost==='true';
+ const workbenchLink=localWorkbench?'<a class="btn primary" href="/analysis/">Open local fictional-document workbench</a>':'<div class="callout notice">To use the separate local analysis workbench, run <code>npm run start:analysis</code> on this machine and open <code>http://127.0.0.1:8780/analysis/</code>.</div>';
+ setTimeout(()=>renderAnalysisReceiptInbox(),0);
+ return `<div class="kicker">UMG integration boundary</div><h2>UMG Runtime / Analysis Trace</h2><p class="callout"><b>Current MVP state:</b> the main dashboard's sandbox review below is simulated. A separate fictional-document workbench now calls the revision-2 local UMG adapter when configured, validates the response, and records human-review proposals in a local SQLite ledger. The two workflows remain separate; no finding is automatically written into the main case record.</p><div class="grid"><div class="card c6"><h3>Record Consistency Review — fixture simulation</h3><p class="muted">Run the deterministic fixture to surface seeded contradictions and record gaps. This is not a live analysis call.</p><button class="btn primary" onclick="runConsistency()">Run sandbox review</button><div id="runner"></div></div><div class="card c6"><h3>Local fictional-document workbench</h3><p class="muted">Submit synthetic documents, inspect exact source passages, run the separate analysis workbench, and record a human disposition. All proposals remain HUMAN_REVIEW_REQUIRED.</p>${workbenchLink}</div><div class="card c12"><h3>Supported local synthetic path</h3><pre>Fictional documents
 ↓
-UMG compile / Sleeve
+CaseBrief analysis candidate generation
 ↓
-Needs + ToolRequests
+Revision-2 UMG request / governance boundary
 ↓
-CaseBrief document / research / model tools
+Actual response validator + source/session recheck
 ↓
-ToolResults + state update
+Local SQLite host review ledger
 ↓
-Trace + audit event</pre></div><div class="card c12"><h3>New surfaces that must be wired through the integration</h3><div class="row"><span class="pill">AI chat</span><span class="pill">authority research</span><span class="pill">document drafting</span><span class="pill">rights flags</span><span class="pill">source citations</span><span class="pill">audit events</span></div></div></div>`}
+HUMAN_REVIEW_REQUIRED proposal
+↓
+Human passage assessment + disposition + audit</pre><p class="small muted">UMG does not perform general fresh-document semantic contradiction discovery. Fresh arbitrary candidates may be quarantined. A CaseBrief proposal is not UMG semantic validation, attorney approval or a legal conclusion.</p></div><div class="card c12"><h3>Not yet connected to this UMG path</h3><div class="row"><span class="pill">Main-app AI chat</span><span class="pill">authority research</span><span class="pill">document drafting</span><span class="pill">rights flags</span><span class="pill">main-case timeline</span><span class="pill">main-case evidence</span></div><p class="small muted">These surfaces remain separate or simulated. The local workbench does not automatically mutate the main case, CRI, witness records or filings.</p></div><div class="card c12"><h3>Untrusted local receipt inbox</h3><p class="muted">Import a downloaded synthetic workbench receipt for inspection. It remains quarantined, is not attached to this case, and cannot change CRI, timeline, evidence or witness records.</p><input type="file" accept=".json,application/json" onchange="importCaseBriefAnalysisReceipt(this)"><div id="analysisReceiptInbox"></div></div></div>`;
+}
 function runConsistency(){if(!applicationAllowed())return blockApplication();const hits=data.issues.filter(x=>['contradiction','missing_evidence','timeline_gap','unsupported_assertion'].includes(x.category));record('analysis.started','record-consistency',{simulated:true});document.getElementById('runner').innerHTML=`<div class="list" style="margin-top:10px">${hits.map(x=>`<div class="item"><b>${esc(x.category)}</b><div>${esc(x.statement)}</div><div class="meta">${esc(x.sources.join(', '))}</div></div>`).join('')}</div>`;record('analysis.completed','record-consistency',{findings:hits.map(x=>x.id),simulated:true},'success',systemActor)}
 
 const AUDIT_ACTION_LABELS={
+ 'ingestion.source_quarantined':'Source entered quarantine','ingestion.source_promoted':'Source promoted for case review','ingestion.source_revoked':'Source case use revoked','ingestion.duplicate_detected':'Duplicate source detected',
  'session.started':'Session started','view.opened':'Page opened','control.activated':'Control selected','case.switched':'Active case changed',
  'record.opened':'Record opened','detail.closed':'Details closed','cri.opened':'CRI details opened','review.decision_started':'Review decision started',
  'issue.status_changed':'Review status changed','document.review_changed':'Document review changed','authority.verification_changed':'Authority verification changed',
  'ai.question_asked':'Question asked','ai.response_generated':'AI response generated','ai.chat_cleared':'AI chat cleared','draft.generated':'Draft generated',
  'draft.opened':'Draft opened','draft.edit_started':'Document editing started','draft.version_saved':'Document version saved','content.copied':'Content copied','content.copy_failed':'Copy failed','communication.compose_opened':'Message draft opened',
  'communication.content_prepared':'Message prepared','communication.demo_recorded':'Demo message recorded','analysis.started':'Analysis started',
- 'analysis.completed':'Analysis completed','security.profile_changed':'Active role changed','security.role_demo_changed':'Active role changed','security.access_denied':'Access denied',
+ 'analysis.completed':'Analysis completed','analysis.receipt_imported':'Analysis receipt imported to quarantine','security.profile_changed':'Active role changed','security.role_demo_changed':'Active role changed','security.access_denied':'Access denied',
  'security.privacy_enabled':'Privacy mode enabled','security.privacy_disabled':'Privacy mode disabled','security.privacy_mode_changed':'Privacy mode changed','security.session_locked':'Session locked',
  'security.session_unlocked':'Session unlocked','security.controls_initialized':'Security controls initialized','security.sensitive_action_prompted':'Sensitive action confirmation requested',
  'security.sensitive_action_confirmed':'Sensitive action confirmed','security.sensitive_action_cancelled':'Sensitive action cancelled','data.egress_attempt':'External copy/export attempted',

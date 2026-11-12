@@ -8,7 +8,7 @@ const context={structuredClone,crypto:webcrypto,console,Blob,URL,setTimeout,clea
 vm.createContext(context);
 const html=fs.readFileSync('index.html','utf8');
 const sources=[...html.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]);
-assert.deepEqual(sources,['seed.js','security.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','integration/host-controls.js','actions.js','security-runtime.js','demo-capabilities.js','pilot-runtime.js','pilot-demo-seed.js','investor-demo.js','review-receipt.js']);
+assert.deepEqual(sources,['seed.js','security.js','core.js','views-matter.js','views-work.js','views-comm.js','views-system.js','integration/host-controls.js','actions.js','security-runtime.js','demo-capabilities.js','pilot-runtime.js','pilot-demo-seed.js','investor-demo.js','review-receipt.js','ingestion-demo.js','local-analysis-link.js','document-library.js','analysis-receipt-import.js']);
 for(const src of sources)vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
 const run=s=>vm.runInContext(s,context);
 assert.equal(run('current'),'landing');
@@ -16,7 +16,7 @@ assert.equal(run('score()'),26);
 assert.ok(run('dashboard()').includes('measures operational readiness'));
 assert.ok(!run('criRing(score())').includes('Factors reducing CRI'));
 assert.ok(run('criRing(score())').includes('aria-describedby="cri-explanation"'));
-assert.ok(run('dashboard()').includes('Ask AI'));
+assert.ok(run('dashboard()').includes('Ask AI'));assert.ok(run('dashboard()').includes('Untrusted analysis receipts'));
 assert.ok(run('dashboard()').includes('Law & authority'));
 assert.ok(run('dashboard()').includes('Where this case is now'));
 assert.ok(run('authorities()').includes('Brady v. Maryland'));
@@ -38,6 +38,7 @@ get('decisionReason').value='Compared doc-1 and doc-8; unresolved.';run("saveIss
 run("beginIssueDecision('rights-1','dismissed')");get('decisionReason').value='<script>unsafe</script>';run("saveIssueDecision({preventDefault(){}},'rights-1','dismissed')");assert.equal(run('score()'),34);assert.ok(run('activityHistory()').includes('&lt;script&gt;unsafe&lt;/script&gt;'));assert.ok(run('activityHistory()').includes('Review status changed'));assert.ok(!run('activityHistory()').includes('<td><pre>'));
 assert.equal(run("workspace.events.filter(e=>e.action==='issue.status_changed').length"),2);
 run("switchCase('matter-002')");assert.ok(run('dashboard()').includes('CRI pending'));assert.equal(run('data.documents.length'),0);run("switchCase('matter-001')");assert.equal(run('score()'),34);
+assert.ok(run('umg()').includes('Local fictional-document workbench'));assert.ok(run('umg()').includes('not UMG semantic validation'));assert.ok(run('umg()').includes('Untrusted local receipt inbox'));
 for(const view of ['landing','dashboard','review','timeline','evidence','witnesses','documents','authorities','assistant','drafting','communications','umg','audit','safeguards','survey'])run(`showView('${view}')`);
 run("showView('umg');runConsistency()");assert.ok(run("workspace.events.some(e=>e.action==='analysis.completed'&&e.actor.type==='system')"));
 assert.equal(JSON.parse(memory.get('casebrief_workspace_v3')).cases['matter-001'].issues.find(x=>x.id==='rights-1').status,'dismissed');

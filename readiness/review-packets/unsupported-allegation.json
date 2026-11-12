@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "unsupported-allegation-v1",
+  "title": "Location does not establish ownership",
+  "purpose": "Draft review preparation, not independently adjudicated labels or measured accuracy",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "officer",
+      "version": "v1",
+      "text": "The bag was found on the rear floor. Ownership was not established.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "witness",
+      "version": "v1",
+      "text": "Several people used the car. I did not see who placed the bag there.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Do not convert proximity into established ownership.",
+    "Record an unsupported ownership assertion as a false alert if a tested provider makes it."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}
