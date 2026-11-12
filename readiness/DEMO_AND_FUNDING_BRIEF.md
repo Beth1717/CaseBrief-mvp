@@ -22,8 +22,8 @@ CaseBrief is a case intelligence platform intended to help defense teams organis
 | --- | --- |
 | Existing integration baseline | PR #14, commit c3d0538c308f6993a95b480e7bb5399cd2d9d7b4; Actions run #89 passed. Draft and unmerged. |
 | Current demo fixes | Host-aware navigation, guided scenarios, current receipt decisions/audit, read-only history, late-response display guards. See the accompanying PR for exact-head validation. |
-| Real UMG runtime | Repository contains independent November 4 runtime replay results. This is not evidence that the complete application adapter path passed. |
-| Complete real-runtime path | Existing opt-in adapter test needs the checksum-verified October 30 base plus November 4 overlay running alongside CaseBrief. Overlay was not found in this session's accessible recent ZIP inventory. |
+| Real UMG runtime | November 12 actual adapter and persistent-review replay passed; see LOCAL_INTEGRATED_DEMO.md. Real-runtime browser verification remains open. |
+| Complete real-runtime path | Actual HTTP host → adapter → November 4 UMG → saved review passed locally, including source invalidation and restart recovery. Launcher verifies runtime hashes and explicitly reports two supplied report-manifest discrepancies. |
 | Browser access | A running development preview must be verified. An editor URL or queued build is insufficient. |
 | Case linkage | Main-app receipt import remains untrusted and quarantined. It does not update a case, CRI, timeline or evidence automatically. |
 | Analysis quality | Exact quote matching and deterministic timing rules are demonstrated engineering capabilities, not measured legal precision or recall. No live general-model evaluation is claimed. |
@@ -45,7 +45,7 @@ No funding amount, revenue, valuation, adoption count or time-saving result is a
 - Identify an attorney or defense organisation willing to evaluate fictional cases and define a bounded pilot.
 - Confirm who owns and licenses the UMG runtime and what deployment/use rights apply before commercial commitments.
 - Choose the fundraising ask only after costing the above milestones and specifying the runway it buys.
-- Provide the November 4 runtime overlay again only if it cannot be recovered in the running environment. Do not send credentials or client records.
+- November 4 overlay recovered and tested; no resend is needed. The supplied report-manifest discrepancies remain documented for owner correction.
 
 ## Engineering acceptance checklist
 
@@ -56,6 +56,6 @@ No funding amount, revenue, valuation, adoption count or time-saving result is a
 - [ ] Source edits invalidate the active comparison; delayed responses do not restore stale review controls.
 - [ ] Saved receipts survive refresh/restart and open read-only.
 - [ ] Main-app receipt import remains explicitly untrusted; no silent case mutation.
-- [ ] Actual UMG adapter test recorded against the verified November 4 runtime, with zero dispatch.
+- [x] Actual UMG adapter and persistent review tested against the pinned November 4 runtime, with zero dispatch; report-manifest discrepancies documented separately.
 - [ ] Phone-width layout and browser console checked on the delivered build.
 - [ ] Delivered URL is a tested application preview, not an editor link.
