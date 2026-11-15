@@ -1,6 +1,6 @@
 # CaseBrief: demonstrable scope and funding milestones
 
-Prepared November 11, 2026. Working document, not an investor claim of production readiness.
+Updated November 15, 2026. Working document, not an investor claim of production readiness.
 
 ## Product statement
 
@@ -8,7 +8,7 @@ CaseBrief is a case intelligence platform intended to help defense teams organis
 
 ## Five-minute demonstration
 
-1. Open CaseBrief on the analysis host and select **Compare fictional documents**.
+1. Start the assembled local desktop demo and use the comparison page it opens, or open CaseBrief on the analysis host and select **Compare fictional documents**. GitHub Pages serves the static frontend; it is not the integrated UMG service. Rehearse the complete browser flow before presenting.
 2. Load **Conflicting traffic-stop times**, acknowledge fictional-only use, and compare. Explain that this demonstration uses explicit-time rules; it does not demonstrate general AI understanding.
 3. Read the two exact quotations. Record passage support with a reason, then confirm or dismiss the factual candidate with a separate reason. Confirmation is a local human disposition, not attorney validation.
 4. Download the receipt. Inspect the decision history and host audit events. Reopen a saved review to demonstrate read-only historical access.
@@ -20,14 +20,20 @@ CaseBrief is a case intelligence platform intended to help defense teams organis
 
 | Item | Evidence or outstanding work |
 | --- | --- |
-| Existing integration baseline | PR #14, commit c3d0538c308f6993a95b480e7bb5399cd2d9d7b4; Actions run #89 passed. Draft and unmerged. |
-| Current demo fixes | Host-aware navigation, guided scenarios, current receipt decisions/audit, read-only history, late-response display guards. See the accompanying PR for exact-head validation. |
-| Real UMG runtime | November 12 actual adapter and persistent-review replay passed; see LOCAL_INTEGRATED_DEMO.md. Real-runtime browser verification remains open. |
+| Existing integration baseline | PR #14 merged into main November 14 Mountain Time, incorporating PRs #15 and #16. Baseline main commit: 69b2eccfabf462474af4d48472124dcfad214587. Latest integration-branch host-adoption validation passed November 12; Pages deployment passed after merge. Pages deployment does not prove a running backend. |
+| Current demo fixes | Host-aware navigation, guided scenarios, current receipt decisions/audit, read-only history, late-response display guards. PR #15 exact-head Actions run #90 passed 17 analysis tests and 29 application/integration/browser suites. These CI checks are distinct from actual-runtime browser verification. |
+| Real UMG runtime | November 12 replay passed and was reproduced November 15 in the assembled package: SUCCEEDED, fresh accepted 0/quarantined 1, separate CaseBrief proposal 1, zero dispatch, valid audit chain, two persisted decisions, read-only restart recovery and stale-review rejection; see LOCAL_INTEGRATED_DEMO.md. Real-runtime browser verification remains open. |
 | Complete real-runtime path | Actual HTTP host → adapter → November 4 UMG → saved review passed locally, including source invalidation and restart recovery. Launcher verifies runtime hashes and explicitly reports two supplied report-manifest discrepancies. |
-| Browser access | A running development preview must be verified. An editor URL or queued build is insufficient. |
+| Browser access | Assembled desktop package and launcher delivered privately to Beth November 15. Linux launcher/served-page smoke check passed; Windows execution and actual-runtime browser replay are unverified. Chromium failed before page load due to environment socket restrictions. Replit returned no usable preview and publication status found=false; project page returned 404. An editor URL or queued build is insufficient. |
 | Case linkage | Main-app receipt import remains untrusted and quarantined. It does not update a case, CRI, timeline or evidence automatically. |
 | Analysis quality | Exact quote matching and deterministic timing rules are demonstrated engineering capabilities, not measured legal precision or recall. No live general-model evaluation is claimed. |
 | Authentication and audit | Local session and SQLite controls are development mechanisms, not qualified production identity, tenant isolation or independently anchored audit. |
+
+## Remaining investor-demo delivery work
+
+[Issue #17](https://github.com/Beth1717/CaseBrief-mvp/issues/17) is the shared task for independent browser verification, defect reports and hosting investigation. Muse has not been activated or confirmed assigned by creating the issue. Record the exact tested commit and actual-runtime evidence there. Keep owner ZIP archives and private links out of the public repository.
+
+A local investor presentation can proceed after the delivered build passes the browser walkthrough and Beth can operate it. A shareable online demo additionally requires a running, access-controlled deployment. Neither is currently marked ready.
 
 ## Milestone-based use of funding
 
@@ -59,3 +65,4 @@ No funding amount, revenue, valuation, adoption count or time-saving result is a
 - [x] Actual UMG adapter and persistent review tested against the pinned November 4 runtime, with zero dispatch; report-manifest discrepancies documented separately.
 - [ ] Phone-width layout and browser console checked on the delivered build.
 - [ ] Delivered URL is a tested application preview, not an editor link.
+
