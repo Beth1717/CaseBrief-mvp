@@ -17,6 +17,7 @@ function pilotReviewReceipt(){
   findings:findings.map(f=>({id:f.id,statement:f.statement,sourceIds:f.sources,
    citations:structuredClone(f.citations),sourceActive:f.sourceActive,needsSourceReview:f.needsSourceReview,
    status:f.status,humanConfirmed:f.humanConfirmed,ruleset:f.ruleset,
+   verification:{sourceLink:f.sourceActive?'CURRENT_SOURCE_LINKS':'REVIEW_REQUIRED_AFTER_SOURCE_CHANGE',propositionSupport:f.humanConfirmed?'LOCAL_HUMAN_CONFIRMED':'UNASSESSED',attorneyValidation:'NOT_ESTABLISHED'},
    decisions:f.decisionHistory.map(d=>({ ...structuredClone(d),
     auditEventIds:events.filter(e=>e.target===f.id&&JSON.stringify(e.details)===JSON.stringify(d)).map(e=>e.id)
    }))})),

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "consistent-control-v1",
+  "title": "Consistent source control",
+  "purpose": "Draft test preparation; not independently adjudicated ground truth or observed results",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "incident",
+      "version": "v1",
+      "text": "The report records arrival at 22:14.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "dispatch",
+      "version": "v1",
+      "text": "The dispatch log records arrival at 22:14.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Do not invent a conflict between these two times.",
+    "An absence of contradiction does not establish that either source is true."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

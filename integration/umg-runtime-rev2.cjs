@@ -10,7 +10,7 @@ const clone=v=>structuredClone(v);
 const forbidden=new Set(['reasoning','chainofthought','privatechainofthought','privatereasoning','hiddenreasoning','rawchainofthought']);
 function hasPrivateReasoning(value){
  if(!value||typeof value!=='object')return false;
- return Object.entries(value).some(([key,v])=>forbidden.has(key.replace(/[-_\s]/g,'').toLowerCase())||hasPrivateReasoning(v));
+ return Object.entries(value).some(([key,v])=>forbidden.has(key.replace(/[^a-z0-9]/gi,'').toLowerCase())||hasPrivateReasoning(v));
 }
 function shapeErrors(validator,value){return validator(value)?[]:validator.errors.map(e=>`${e.instancePath||'/'} ${e.message}`)}
 function validateRequest(request){
@@ -23,6 +23,7 @@ function validateRequest(request){
   if(ids.has(source.sourceId))errors.push('duplicate source ID');ids.add(source.sourceId);
  }
  for(const expected of request.expectedRecords)if(expected.basisSourceIds.some(id=>!ids.has(id)))errors.push('unauthorised expectation basis');
+ for(const [rows,key] of [[request.expectedRecords,'expectationId'],[request.candidateFindings||[],'findingId']])if(new Set(rows.map(row=>row[key])).size!==rows.length)errors.push('duplicate '+key);
  if(request.hostContext.authorization.status!=='ALLOW'&&(request.sources.length||request.expectedRecords.length||request.candidateFindings?.length))errors.push('non-ALLOW request contains protected payload');
  const expires=request.hostContext.authorization.expiresAt;
  if(expires!==null&&expires!==undefined&&(!Number.isFinite(Date.parse(expires))||Date.parse(expires)<=Date.now()))errors.push('stale or malformed authorization expiry');
@@ -52,20 +53,30 @@ function validateResponse(response,request){
  if(response.provenance.synthetic!==true)errors.push('non-synthetic response');
  if(hasPrivateReasoning(response))errors.push('private reasoning payload');
  const ids=new Set(request.sources.map(s=>s.sourceId));
+ const findingIds=new Set();
  for(const finding of [...response.result.acceptedFindings,...response.result.quarantinedFindings]){
+  if(findingIds.has(finding.findingId))errors.push('duplicate response finding');findingIds.add(finding.findingId);
   if(finding.sourceRefs.some(id=>!ids.has(id)))errors.push('unauthorised finding source');
-  if(response.result.acceptedFindings.includes(finding)&&(!finding.sourceRefs.length||finding.reviewState==='REVIEWED'))errors.push('accepted result must be cited and remain a human review proposal');
+  if(response.result.acceptedFindings.includes(finding)&&(!finding.sourceRefs.length||finding.reviewState!=='HUMAN_REVIEW_REQUIRED'))errors.push('accepted result must be cited and remain a human review proposal');
+  if(response.result.quarantinedFindings.includes(finding)&&finding.reviewState==='REVIEWED')errors.push('quarantined result cannot claim human review');
  }
  if(response.provenance.sourceIds.some(id=>!ids.has(id)))errors.push('unauthorised provenance source');
  const expected=new Map(request.expectedRecords.map(e=>[e.expectationId,e]));
+ const expectationIds=new Set();
  for(const row of response.result.expectations){
+  if(expectationIds.has(row.expectationId))errors.push('duplicate response expectation');expectationIds.add(row.expectationId);
   const original=expected.get(row.expectationId);
   if(!original||original.recordId!==row.recordId||row.basisSourceIds.some(id=>!ids.has(id)||!original.basisSourceIds.includes(id)))errors.push('expectation identity or source mismatch');
   // UMG never creates a CaseBrief human disposition merely by returning a status.
   if(['resolved_by_human_review','dismissed_by_human_review'].includes(row.status)&&(!original?.hostDecisionRef||row.decisionRef!==original.hostDecisionRef))errors.push('unattested human expectation decision');
  }
  if(request.hostContext.authorization.status!=='ALLOW'&&response.status!=='DENIED'&&response.status!=='BLOCKED'&&response.status!=='NEEDS_INPUT')errors.push('unauthorised response status');
- if(['DENIED','BLOCKED','ERROR','FALLBACK'].includes(response.status)&&(response.result.acceptedFindings.length||response.result.quarantinedFindings.length||response.result.expectations.length))errors.push('failure response contains analysis payload');
+ if(['DENIED','BLOCKED','ERROR','FALLBACK'].includes(response.status)){
+  if(Object.values(response.result).some(rows=>rows.length)||response.provenance.sourceIds.length)errors.push('failure response contains analysis payload');
+  if(response.runtime.compilerExecution!=='NOT_EXECUTED'||response.runtime.frameworkExecution!=='NOT_EXECUTED')errors.push('failure response claims runtime execution');
+ }
+ if(response.auditEvents.some(event=>event.effectsDispatched!==undefined&&event.effectsDispatched!==0))errors.push('audit claims external effects');
+ if(request.hostContext.authorization.status!=='ALLOW'&&(response.runtime.compilerExecution!=='NOT_EXECUTED'||response.runtime.frameworkExecution!=='NOT_EXECUTED'))errors.push('unauthorized runtime execution');
  if(response.status==='SUCCEEDED'&&response.authorization.status!=='ALLOW')errors.push('successful response without authorization');
  if(response.status==='DENIED'&&(response.runtime.compilerExecution!=='NOT_EXECUTED'||response.runtime.frameworkExecution!=='NOT_EXECUTED'))errors.push('denied response claims runtime execution');
  if(response.runtime.compilerExecution==='EXECUTED'||response.runtime.frameworkExecution==='EXECUTED'){
@@ -87,18 +98,19 @@ function invokeLocal(request,{endpoint='http://127.0.0.1:8767/v0.1/record-consis
  if(url.protocol!=='http:'||url.hostname!=='127.0.0.1'||url.username||url.password||url.pathname!=='/v0.1/record-consistency'||url.search||url.hash)throw new Error('only the explicit loopback synthetic endpoint is permitted');
  if(!Number.isInteger(timeoutMs)||timeoutMs<=0||timeoutMs>30000)throw new Error('timeout must be between 1 and 30000 ms');
  if(request.hostContext.authorization.status==='ALLOW'&&(!request.hostContext.authorization.scopes.includes('case_view')||!request.hostContext.authorization.scopes.includes('ai_use')))return Promise.resolve(localFallback(request,'HOST_SCOPE_MISSING','CaseBrief did not grant required analysis scopes.'));
+ const body=JSON.stringify(request);
+ if(Buffer.byteLength(body)>2*1024*1024)return Promise.resolve(localFallback(request,'REQUEST_TOO_LARGE','Runtime request exceeded the local limit.'));
  return new Promise(resolve=>{
   let finished=false,timer;
   const done=value=>{if(finished)return;finished=true;clearTimeout(timer);resolve(value)};
-  const body=JSON.stringify(request);
   const call=http.request(url,{method:'POST',headers:{'content-type':'application/json','content-length':Buffer.byteLength(body)}},response=>{
-   let raw='',size=0;
-   response.on('data',chunk=>{size+=chunk.length;if(size>2*1024*1024){done(localFallback(request,'RESPONSE_TOO_LARGE','Runtime response exceeded the local limit.'));call.destroy()}else raw+=chunk});
+   const chunks=[];let size=0;
+   response.on('data',chunk=>{size+=chunk.length;if(size>2*1024*1024){done(localFallback(request,'RESPONSE_TOO_LARGE','Runtime response exceeded the local limit.'));call.destroy()}else chunks.push(chunk)});
    response.on('error',()=>done(localFallback(request,'FRAMEWORK_UNAVAILABLE','Local runtime connection failed.')));
    response.on('end',()=>{
     if(finished)return;
     if(response.statusCode!==200)return done(localFallback(request,'HTTP_ERROR','Local runtime returned an unsuccessful HTTP status.'));
-    try{const result=JSON.parse(raw),valid=validateResponse(result,request);done(valid.valid?clone(result):localFallback(request,'INVALID_RESPONSE',valid.errors.join('; ')))}catch{done(localFallback(request,'INVALID_RESPONSE','Local runtime did not return valid JSON.'))}
+    try{const result=JSON.parse(Buffer.concat(chunks).toString('utf8')),valid=validateResponse(result,request);done(valid.valid?clone(result):localFallback(request,'INVALID_RESPONSE',valid.errors.join('; ')))}catch{done(localFallback(request,'INVALID_RESPONSE','Local runtime did not return valid JSON.'))}
    });
   });
   timer=setTimeout(()=>{done(localFallback(request,'FRAMEWORK_TIMEOUT','Local runtime exceeded the deadline; late results are not accepted.'));call.destroy()},timeoutMs);

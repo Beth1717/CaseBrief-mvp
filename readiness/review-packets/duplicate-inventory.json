@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "duplicate-inventory-v1",
+  "title": "Duplicate indexed text",
+  "purpose": "Draft review preparation, not independently adjudicated labels or measured accuracy",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "inventory",
+      "version": "v1",
+      "text": "E02 laboratory result requested; no final report supplied.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "copy",
+      "version": "v1",
+      "text": "E02 laboratory result requested; no final report supplied.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Do not count the duplicate as independent corroboration.",
+    "Not supplied does not mean nonexistent."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

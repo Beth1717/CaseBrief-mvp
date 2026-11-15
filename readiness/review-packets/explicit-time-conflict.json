@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "explicit-time-conflict-v1",
+  "title": "Explicit times for the same event",
+  "purpose": "Draft review preparation, not independently adjudicated labels or measured accuracy",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "incident",
+      "version": "v1",
+      "text": "The interview began at 03:08.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "witness",
+      "version": "v1",
+      "text": "The interview began at 04:19.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Assess both time statements without claiming which is true.",
+    "Investigate dates and clocks before a legal conclusion."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

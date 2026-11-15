@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "source-revision-v1",
+  "title": "Conflicting source revisions",
+  "purpose": "Draft review preparation, not independently adjudicated labels or measured accuracy",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "original",
+      "version": "v1",
+      "text": "The interview began at 03:08. Original draft, later superseded.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "correction",
+      "version": "v1",
+      "text": "The interview began at 04:19. Corrected version; change requires reviewer investigation.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Expose the version relationship and preserve the original.",
+    "A correction is not automatically proof the original was false."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

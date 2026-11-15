@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "different-dates-v1",
+  "title": "Same event label on different days",
+  "purpose": "Draft review preparation, not independently adjudicated labels or measured accuracy",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "first",
+      "version": "v1",
+      "text": "The interview began at 03:08 on 2026-07-10.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "second",
+      "version": "v1",
+      "text": "The interview began at 04:19 on 2026-07-11.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Different dates do not establish conflicting accounts of the same occurrence."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

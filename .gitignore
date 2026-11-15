@@ -1,3 +1,10 @@
 node_modules/
 server.log
 validation-receipt.txt
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+__pycache__/
+
+readiness/results/

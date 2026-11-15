@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "exculpatory-lab-v1",
+  "title": "Material undermining an initial allegation",
+  "purpose": "Draft review preparation, not independently adjudicated labels or measured accuracy",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "allegation",
+      "version": "v1",
+      "text": "A field note describes suspected methamphetamine in item E02. No final substance identification was available.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "laboratory",
+      "version": "v1",
+      "text": "The final laboratory report for item E02 states that no controlled substance was detected.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Identify the final laboratory result as material contrary to the suspicion.",
+    "Do not conclude innocence, guilt, or automatic dismissal.",
+    "Rules-only time comparison does not cover this task; absence of its findings is a known coverage gap."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}

@@ -15,19 +15,23 @@
 
 The last items are not automatically completed by this engineering change. Do not set a selling price from competitor marketing ranges or unmeasured compute assumptions. Prefer a small, clearly scoped pilot offer only after confirming the buyer, scope, real costs and approval conditions.
 
-## Updated request for Chris (draft to share; not sent)
+## October 30 integration progress
 
-CaseBrief PR #8 is merged at `bf2f3a6d41d0cc9b10ea663ac58884ab6bca1fc9`; tested source head `8a3d30692490e0efadb0b596d0520a71069cc54a`. Historical Actions run #21 reports all 17 suites. The automated code review recorded no findings; that is separate from your UMG review, human attorney validation and production-security qualification.
+The October 30 base plus November 4 overlay are separately checksum-verified by the handoff evidence. The combined November 5 branch now joins PR #10's UMG host/store/intake foundation with PR #11/#12 analysis and passage verification. The workbench invokes the actual revision-2 adapter when configured, validates responses, persists local synthetic review decisions in SQLite, and rejects stale/invalid results. Exact-head CI and an actual replay against the November 4 package are still required; this is not a production backend or attorney signoff.
 
-We are preparing a source-to-decision handoff and synthetic pilot measurement pack. Please provide only the remaining UMG/deployment evidence:
+Completed preparation: six draft fictional factual-control packets and reviewer worksheet; an explicit provider/backend decision register; and feature-level recovery triage of conflicting PR #2. Packet labels are not adjudicated and no pilot measurements are claimed. The fixed-sample intake slice is implemented separately in `ingestion-demo.js`; real file/court ingestion remains open.
 
-1. Review/freeze the revision-2 request/response contract and identify any required change: authorization status/decision binding, invocation IDs, source locators, accepted proposals versus human decisions, fallback/denial semantics, private-reasoning exclusion and zero effects. Tie your response to the exact adapter commit you review.
-2. Name the intended runtime/model versions and provide CaseBrief-specific evaluation evidence, including denied/expired authorization, wrong matter, unsupported references, injected document instructions, malformed/late responses and zero external effects. Distinguish local replay, compatibility compile and NeoUMG lineage qualification; mark anything not run explicitly.
-3. Identify the proposed host/operator/support owner and provide authentication/isolation, TLS/secrets, retention/deletion, model/provider/subprocessor/no-training terms, and monitoring/incident responsibilities. An unselected provider should remain unselected in the record.
-4. Supply a cross-service audit example joining CaseBrief request, authorization decision, runtime/source versions, result/fallback and host acceptance under correlation IDs without hidden reasoning or unnecessary privileged content. Describe persistence/failure handling; a local trace is not durable audit qualification.
-5. Confirm ownership/licensing and any integration restrictions in writing, or identify who must resolve them.
+## What remains with Chris and joint interface review
 
-Return an evidence table: item, pass/fail/not run, artifact/hash or immutable URL, exact version/commit, limitations, proposed owner and next action. Do not mark attorney validation, CRI calibration, production backend or commercial validation complete through runtime signoff. No real client data or external action is authorised by this request.
+1. Written adoption or revision of the technical recommendation, pinned release and wrapper changes. Revision 2 remains draft.
+2. Analysis architecture, implementation owner and executable component for new case material. The supplied result layer is fixture-bound; actual model/provider analysis and native NeoUMG lineage remain not run.
+3. Tenant/authentication and source-version interface agreement. The host snapshot experiment does not settle the remote protocol.
+4. Runtime data handling, audit trace/persistence contract, provider/host/operator selection and operational responsibilities.
+5. Use-rights, costs, maintenance and support confirmation by authorized parties.
+
+`integration/patches/umg-negative-test-exceptions.patch` is a proposed correction for the bundled evaluator's broad exception handling. It is not an adopted UMG release or a change to the immutable package.
+
+Return an evidence table with item, status, artifact/hash, version/commit, limitations, owner, next action and expected date. Local synthetic engineering can proceed while commercial/production choices are open; no confidential transfer or external action is authorized.
 
 ## Decisions still requiring people
 
@@ -37,3 +41,17 @@ Return an evidence table: item, pass/fail/not run, artifact/hash or immutable UR
 - Actual willingness to pay and buyer procurement constraints.
 
 Until those exist, complete synthetic engineering and evaluation preparation; do not invent commitments or report measured outcomes.
+
+
+## November 5 CaseBrief-owned implementation status
+
+The integration branch adds a persistent local review ledger and an application bridge. It does not turn the local actor/session into production authentication. Historical review records survive a server restart, but the old authorization/source context is not restored; those receipts are read-only until a new comparison is run. The ledger is hash-chained and append-only within SQLite, but it is not externally signed or independently tamper-proof.
+
+Next engineering actions:
+1. Run the combined CI suite and fix every regression before merge.
+2. Start the exact November 4 UMG service and replay a fresh fictional candidate plus the pinned sample; retain both acceptance and quarantine evidence.
+3. Confirm invalid identity, unsupported status, changed source, timeout and late result cannot enter human review.
+4. Complete a security review of the SQLite store, local session token, request-size limits and data retention.
+5. Keep real-client data disabled until a separately authenticated, hosted backend and security qualification exist.
+
+The UMG release still quarantines fresh arbitrary candidates by design. CaseBrief's separate proposal workflow must preserve that quarantine as a distinct UMG result; no UI or report may describe the candidate as UMG-validated or attorney-approved.

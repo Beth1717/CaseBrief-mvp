@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "casebrief.synthetic-review-packet.v1",
+  "syntheticOnly": true,
+  "packetId": "explicit-consistent-v1",
+  "title": "Matching explicit times",
+  "purpose": "Draft review preparation, not independently adjudicated labels or measured accuracy",
+  "adjudication": {
+    "status": "pending",
+    "reviewerId": null,
+    "reviewedAt": null
+  },
+  "sources": [
+    {
+      "id": "incident",
+      "version": "v1",
+      "text": "The interview began at 03:08.",
+      "classification": "synthetic_case_record"
+    },
+    {
+      "id": "witness",
+      "version": "v1",
+      "text": "The interview began at 03:08.",
+      "classification": "synthetic_case_record"
+    }
+  ],
+  "draftReviewQuestions": [
+    "Do not report a discrepancy from identical times."
+  ],
+  "observedResults": null,
+  "reviewerNotes": null
+}
